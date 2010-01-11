@@ -1,0 +1,81 @@
+<!doctype>
+<html>
+<head>
+    <style type="text/css">
+        .focus {display:none;}
+/*        .before, .after {display:none;}*/
+/*        .editing .before, .editing .after {display:inline;}*/
+    </style>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.js"></script>
+    <script type="text/javascript" src="resig-templates.js"></script>
+    <script type="text/javascript">
+    $(function(){
+        function key_value_swap(dict){
+          var result = {}
+          for (var key in dict){
+            result[dict[key]] = key
+          }
+          return result
+        }
+
+        var keys = {enter:13, tab:9, up:38, down:40, left:37, right:39, del:8, space:32}
+        var codes = key_value_swap(keys)
+
+        var input = $('#input')
+        var list = $('#list')
+        var focused = $('#focused')
+
+        // resurrect items
+        for(var id = 0;; id++){
+            var message = localStorage['message-'+id]
+            if (!message) break;
+            list.append(tmpl("todo_item_template", {text:message}));
+        }
+        var max_id = id
+        
+        
+        input.keydown(function(event){
+            if (event.which == keys.enter) {
+                var text = input.val()
+                list.append(tmpl("todo_item_template", {text:text}));
+                localStorage['message-'+max_id] = text
+                max_id += 1
+                
+                input.val('')
+            }
+        })
+        $('.focus').live('click', function(){
+            var item = $(this).parent('li')
+            focused.append(item)
+            list.addClass('editing')
+        })
+
+    })
+
+
+    </script>
+
+
+    <script type="text/html" id="todo_item_template">
+        <li><%= text %>
+            <button class="focus">focus</button>
+            <button class="before">before</button>
+            <button class="after">after</button>
+    </script>
+</head>
+<body>
+    <ul id="focused"></ul>
+    <input type="text" id="input">
+    <ul id="list"></ul>
+
+    <h2>On Your Plate</h2>
+    <ul id="doing"></ul>
+
+    <h2>Done</h2>
+    <ul id="list"></ul>
+
+
+
+</body>
+</html>
+
