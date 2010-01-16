@@ -1,0 +1,2 @@
+- Implement this with sqlite first for simplicity.
+    Maybe try to hack it without that later on

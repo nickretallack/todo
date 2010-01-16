@@ -2,8 +2,8 @@
 <html>
 <head>
     <style type="text/css">
-        .focus {display:none;}
-/*        .before, .after {display:none;}*/
+        #focused .focus {display:none;}
+        .before, .after {display:none;}
 /*        .editing .before, .editing .after {display:inline;}*/
     </style>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.js"></script>
@@ -49,6 +49,21 @@
             focused.append(item)
             list.addClass('editing')
         })
+        
+        $('.done').live('click', function(){
+            moveto(this, '#done')
+            // var item = $(this).parent('li')
+            // $('#done').append(item)
+        })
+
+        $('.do').live('click', function(){
+            moveto(this, '#doing')
+        })
+
+        function moveto(button, destination){
+            var item = $(button).parent('li')
+            $(destination).append(item)
+        }
 
     })
 
@@ -58,13 +73,23 @@
 
     <script type="text/html" id="todo_item_template">
         <li><%= text %>
-            <button class="focus">focus</button>
+        <button class="focus">Focus</button>
+            <button class="done">Done</button>
+            <button class="do">Do</button>
             <button class="before">before</button>
             <button class="after">after</button>
     </script>
 </head>
 <body>
     <ul id="focused"></ul>
+
+    <ul id="modes">
+        <label for="free"><input name="mode" type="radio" id="free" checked>Free</label>
+        <label for="before"><input name="mode" type="radio" id="before">Before</label>
+        <label for="after"><input name="mode"type="radio" id="after">After</label>
+    </ul>
+    
+    
     <input type="text" id="input">
     <ul id="list"></ul>
 
@@ -72,7 +97,7 @@
     <ul id="doing"></ul>
 
     <h2>Done</h2>
-    <ul id="list"></ul>
+    <ul id="done"></ul>
 
 
 
