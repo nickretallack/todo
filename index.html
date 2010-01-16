@@ -1,86 +1,109 @@
-<!doctype>
+<!doctype html>
 <html>
 <head>
-    <style type="text/css">
-        #focused .focus {display:none;}
-        .before, .after {display:none;}
+<style type="text/css">
+    #focused .focus {display:none;}
+    .before, .after {display:none;}
 /*        .editing .before, .editing .after {display:inline;}*/
-    </style>
-    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.js"></script>
-    <script type="text/javascript" src="resig-templates.js"></script>
-    <script type="text/javascript">
-    $(function(){
-        function key_value_swap(dict){
-          var result = {}
-          for (var key in dict){
-            result[dict[key]] = key
-          }
-          return result
+</style>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.js"></script>
+<script type="text/javascript" src="resig-templates.js"></script>
+<script type="text/javascript" src="gears_init.js"></script>
+<script type="text/javascript" src="util.js"></script>
+<script type="text/javascript" src="json2.js"></script>
+<script type="text/javascript">
+var current_database = 'todo-list'
+
+// TODO: check if gears exists before breaking the script
+var db = google.gears.factory.create('beta.database');
+db.open(current_database);
+
+// TODO: figure out how to do this conditionally
+// var create_todo_item_table = 'create virtual table item using fts2(text, note, stemming)'
+// db.execute(create_todo_item_table)
+</script>
+
+<script type="text/javascript">
+$(function(){
+    var input = $('#input')
+    var list = $('#list')
+    var focused = $('#focused')
+
+    function moveto(button, destination){
+        var item = $(button).parent('li')
+        $(destination).append(item)
+    }
+
+    function add_to_list(text){
+        return list.append(tmpl("todo_item_template", {text:text}));
+    }
+
+
+    // resurrect items
+    // Naming this thing 'r' because it's weird.  It's a result set iterator thing
+    // that acts as a single result until you call 'next' on it.  So it's a row, and it's rows.
+    query_iterate('select text from item', [], function(row){
+        add_to_list(row.text)
+    })
+    
+    input.keydown(function(event){
+        if (event.which == keys.enter) {
+            var text = input.val()
+            input.val('')
+            add_to_list(text)
+
+            // TODO: add stemming
+            var stemming = generate_stems(text)
+            db.execute('insert into item (text, stemming) values (?,?)', [text, stemming])
         }
 
-        var keys = {enter:13, tab:9, up:38, down:40, left:37, right:39, del:8, space:32}
-        var codes = key_value_swap(keys)
+        setTimeout(function(){
+            // AUTOMATIC SEARCH
+            // Using setTimeout so I can grab the value of the text field after it's updated.
+            var text = input.val()
+            var output = $('#output').empty()
+            query_iterate('select text from item where item match ?',[text],function(row){
+                output.append(tmpl("todo_item_template", {text:row.text}));
+            })            
+        },1)
+    })
+    $('.focus').live('click', function(){
+        var item = $(this).parent('li')
+        focused.append(item)
+        list.addClass('editing')
+    })
+    
+    $('.done').live('click', function(){
+        moveto(this, '#done')
+        // var item = $(this).parent('li')
+        // $('#done').append(item)
+    })
 
-        var input = $('#input')
-        var list = $('#list')
-        var focused = $('#focused')
-
-        // resurrect items
-        for(var id = 0;; id++){
-            var message = localStorage['message-'+id]
-            if (!message) break;
-            list.append(tmpl("todo_item_template", {text:message}));
-        }
-        var max_id = id
-        
-        
-        input.keydown(function(event){
-            if (event.which == keys.enter) {
-                var text = input.val()
-                list.append(tmpl("todo_item_template", {text:text}));
-                localStorage['message-'+max_id] = text
-                max_id += 1
-                
-                input.val('')
-            }
-        })
-        $('.focus').live('click', function(){
-            var item = $(this).parent('li')
-            focused.append(item)
-            list.addClass('editing')
-        })
-        
-        $('.done').live('click', function(){
-            moveto(this, '#done')
-            // var item = $(this).parent('li')
-            // $('#done').append(item)
-        })
-
-        $('.do').live('click', function(){
-            moveto(this, '#doing')
-        })
-
-        function moveto(button, destination){
-            var item = $(button).parent('li')
-            $(destination).append(item)
-        }
-
+    $('.do').live('click', function(){
+        moveto(this, '#doing')
     })
 
 
-    </script>
+})
 
 
-    <script type="text/html" id="todo_item_template">
-        <li><%= text %>
-        <button class="focus">Focus</button>
-            <button class="done">Done</button>
-            <button class="do">Do</button>
-            <button class="before">before</button>
-            <button class="after">after</button>
-    </script>
+</script>
+
+
+<script type="text/html" id="todo_item_template">
+<li><%= text %>
+    <button class="focus">Focus</button>
+    <button class="done">Done</button>
+    <button class="do">Do</button>
+    <button class="before">before</button>
+    <button class="after">after</button>
+</script>
+<script type="text/html" id="item_details_template">
+
+</script>
 </head>
 <body>
+    <ul id="output"></ul>
     <ul id="focused"></ul>
 
     <ul id="modes">
