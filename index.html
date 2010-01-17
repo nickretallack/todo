@@ -4,11 +4,14 @@
 <style type="text/css">
 body {font-family:helvetica, arial;}
 #list_panel, #details_panel {display:inline-block; width:40%; vertical-align:top;}
-.auto_complete {border:1px solid #aaa; padding:5px;}
+/*#before-list input[type=radio] {display:none;}*/
+.list {margin:20px 0;}
+.autocomplete { padding:5px; color:blue; cursor:pointer;}
 li {list-style:none;}
 ul {margin:0; padding:0;}
 h1,h2,h3 { margin:0;}
 h3 {color:#aaa;}
+h2 button {display:inline-block; vertical-align:20%;} 
 input[type=text] {font-size:inherit; font-family:inherit; width:20em;}
 /*    #focused .focus {display:none;}
     .before, .after {display:none;}
@@ -22,9 +25,6 @@ input[type=text] {font-size:inherit; font-family:inherit; width:20em;}
 <script type="text/javascript" src="json2.js"></script>
 <script type="text/javascript" src="underscore.js"></script>
 
-<script type="text/javascript" src="jquery-autocomplete/jquery.autocomplete.js"></script>
-<link rel="stylesheet" type="text/css" href="jquery-autocomplete/jquery.autocomplete.js">
-
 
 <script type="text/javascript">
 // TODO: transfer out of this database, and stop using hyphens, I guess
@@ -35,9 +35,13 @@ var db = google.gears.factory.create('beta.database');
 db.open(current_database);
 
 // TODO: figure out how to do this conditionally
-// db.execute('create virtual table item using fts2(text, note)')
-// db.execute('create table prerequisite (before_id integer, after_id integer)')
+db.execute('create virtual table item using fts2(text, note, status)')
+db.execute('create table prerequisite (before_id integer, after_id integer)')
+
 // NOTES: could do some schema versioning stuff later on
+
+// db.execute('drop table item')
+// db.execute('drop table prerequisite')
 
 </script>
 
@@ -181,9 +185,11 @@ $(function(){
 </script>
 
 <script type="text/html" id="item_details_template">
-<h2><%= text %></h2>
-<%= tmpl('entry_list_template', {name:"before", flavor_text:"Before I can do this, I need to...", list:before }) %>
-<%= tmpl('entry_list_template', {name:"after", flavor_text:"After I finish this, I can...", list:after }) %>
+<h2><%= text %>
+    <button class="done">Done</button>
+</h2>
+<%= tmpl('entry_list_template', {name:"before", flavor_text:"But first I should...", list:before }) %>
+<%= tmpl('entry_list_template', {name:"after", flavor_text:"After that I can...", list:after }) %>
 </ul>
 
 </script>
@@ -202,6 +208,8 @@ $(function(){
 
         <ul id="filter">
             <label for="available"> <input name="filter" type="radio" id="available" checked>Available</label>
+            <label for="unfinished"> <input name="filter" type="radio" id="unfinished">Unfinished</label>
+            <label for="finished"> <input name="filter" type="radio" id="finished">Finished</label>
             <label for="all">       <input name="filter" type="radio" id="all"   >All</label>
         </ul>
         

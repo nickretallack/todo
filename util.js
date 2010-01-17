@@ -30,9 +30,9 @@ function smarter_search(string){
 
     // Stem search on the last word, since it's probably the one you're currently typing
     // But don't bother until you've input a few letters.  Otherwise the result set is too big.
-    if (words[words.length-1].length > 2) {
-        words[words.length-1] += "*"        
-    }
+    // if (words[words.length-1].length > 2) {
+    words[words.length-1] += "*"      
+    // }
 
     // NOTE: change this to match the whole item once I remove the stemming column
     var results = {}
@@ -75,6 +75,9 @@ function test_smarter_search(){
 
 
 function cull_stopwords(list){
+    var stopwords = ['the']
+    list = _.reject(list, function(word){ return word.length <= 1 })
+    list = _.without(list, stopwords)
     // TODO: implement this.  Get the stopwords list from google.
     return list
 }
@@ -285,20 +288,25 @@ function after_enter(input){
     var item_id = result.rowid
     var added = add_prerequisite(focused_item_id, item_id)
 
-    if (available_mode)
-        hide_from_list(item_id)
-
     if (result.created)
         add_to_list($('#main-list'), text, item_id)
 
-    if (added)
+    // If this is always a post-requisite, there's no way it could show in available mode
+    if (available_mode)
+        hide_from_list(item_id)
+
+    console.debug("added?", added)
+    if (added) {
         add_to_list($('#after-list'), text, item_id)
+        console.debug("ADDED")
+    }
     // TODO: special highlight effect in the else case
 }
 
+var last_rs
 function add_prerequisite(before_id, after_id){
     var rs = db.execute('select count(*) from prerequisite where before_id = ? and after_id = ?', [before_id, after_id])
-    if (rs.isValidRow()) return false// already exists
+    if (rs.field(0) != 0) return false// already exists
     db.execute('insert into prerequisite (before_id, after_id) values (?,?)', [before_id, after_id])
     return true
 }
