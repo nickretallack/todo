@@ -105,6 +105,14 @@ function query_iterate(database, query, params, callback, unsafe_mode){
     result_set.close()
 }
 
+function query_list(database, query, params){
+    var list = []
+    query_iterate(database, query, params, function(row){
+        list.push(row)
+    })
+    return list
+}
+
 function to_words(string){
     return string.trim().split(new RegExp("\\s+"))
 }
@@ -245,6 +253,7 @@ function entered_item(input){
 }
 
 function before_enter(input){
+    // TODO: input is never used, just the text.  Should make text the parameter instead
     var text = consume_value(input)
     
     var result = add_to_database(text)

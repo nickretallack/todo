@@ -43,6 +43,7 @@ db.open(current_database);
 
 <script type="text/javascript">
 var focused_item_id
+var available_mode = false
 
 
 $(function(){
@@ -54,11 +55,7 @@ $(function(){
 
     // TODO: make this more general?
     // resurrect items
-    // Naming this thing 'r' because it's weird.  It's a result set iterator thing
-    // that acts as a single result until you call 'next' on it.  So it's a row, and it's rows.
-    query_iterate( db, 'select text, rowid from item', [], function(row){
-        add_to_list($('#main-list'), row.text, row.rowid)
-    })
+
     
     $('.focus').live('click', function(){
         var item = $(this).parent('li')
@@ -108,6 +105,16 @@ $(function(){
     })
 
 
+    $('#filter #all').click(function(event){
+        show_all_items()
+    })
+
+    $('#filter #available').click(function(event){
+        show_available_items()
+    })
+
+    
+
     ///////////////////////////////////////////////////
     
     // // Use these later
@@ -119,6 +126,30 @@ $(function(){
     //     moveto(this, '#doing')
     // })
 
+    // TODO: implement these with a template instead of clearing html
+    function show_all_items(){
+        var available_mode = false
+        $('#main-list').html('')
+        query_iterate( db, 'select text, rowid from item', [], function(row){
+            add_to_list($('#main-list'), row.text, row.rowid)
+        })
+    }
+    
+    function show_available_items(){
+        var available_mode = true
+        $('#main-list').html('')
+        query_iterate( db, "select item.rowid, item.text from item \
+                left outer join prerequisite on prerequisite.after_id = item.rowid\
+                where prerequisite.before_id is null", [], 
+            function(row){
+                add_to_list($('#main-list'), row.text, row.rowid)
+            }
+        )        
+    }
+    
+    
+    
+    show_all_items()
 })
 
 
@@ -170,11 +201,10 @@ $(function(){
     <div id="list_panel">
         <ul id="focused"></ul>
 
-        <!-- <ul id="modes">
-            <label for="free"><input name="mode" type="radio" id="free" checked>Free</label>
-            <label for="before"><input name="mode" type="radio" id="before">Before</label>
-            <label for="after"><input name="mode"type="radio" id="after">After</label>
-        </ul> -->
+        <ul id="filter">
+            <label for="all">       <input name="filter" type="radio" id="all" checked  >All</label>
+            <label for="available"> <input name="filter" type="radio" id="available"    >Available</label>
+        </ul>
         
         <div id="insert-main-list"></div>
 
