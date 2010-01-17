@@ -4,10 +4,12 @@
 <style type="text/css">
 body {font-family:helvetica, arial;}
 #list_panel, #details_panel {display:inline-block; width:40%; vertical-align:top;}
+.auto_complete {border:1px solid #aaa; padding:5px;}
 li {list-style:none;}
 ul {margin:0; padding:0;}
-h1,h2,h3 {color:#aaa; margin:0;}
-input[type=text] {font-size:inherit; font-family:inherit;}
+h1,h2,h3 { margin:0;}
+h3 {color:#aaa;}
+input[type=text] {font-size:inherit; font-family:inherit; width:20em;}
 /*    #focused .focus {display:none;}
     .before, .after {display:none;}
 *//*        .editing .before, .editing .after {display:inline;}*/
@@ -40,144 +42,100 @@ db.open(current_database);
 </script>
 
 <script type="text/javascript">
+var focused_item_id
+
+
 $(function(){
-    var input = $('#input')
-    // input.autocomplete() //(['alpha','beta'])
-    var list = $('#list')
-    var focused = $('#focused')
-    
-    var focused_item_id
+    $('#insert-main-list').html(tmpl('entry_list_template', {name:"main", 
+        flavor_text:"I should...", list:[]}))
+    //     
+    // var list = $('#main-list')
+    // var input = $('#main-input')
 
-    function moveto(button, destination){
-        var item = $(button).parent('li')
-        $(destination).append(item)
-    }
-
-    function add_to_list(text, id, list){
-        return list.append(tmpl("todo_item_template", {text:text, rowid:id}));
-    }
-
-    function add_to_database(text){
-        // find first.  No duplicates allowed
-        var existing_row_id = null
-        query_iterate( db, 'select rowid, text from item where text match ?', [text], function(row){
-            existing_row_id = row.rowid
-        })
-        if (existing_row_id != null) {
-            return {rowid:existing_row_id, created:false}
-        }
-        
-        db.execute('insert into item (text) values (?)', [text])
-        return {rowid:db.lastInsertRowId, created:true}
-    }
-
-    function auto_search(){
-        setTimeout(function(){
-            // AUTOMATIC SEARCH
-            // Using setTimeout so I can grab the value of the text field after it's updated.
-            var text = input.val()
-            var output = $('#output').empty()
-            var search_results = smarter_search(text)
-            
-            output.html(tmpl("list_items_template", {list:search_results}))
-
-            //     
-            //     // output.append(tmpl("todo_item_template", {text:this, rowid:0}));
-            // })
-            
-            // query_iterate( db, 'select text, rowid from item where item match ?',[text],function(row){
-            //     output.append(tmpl("todo_item_template", {text:row.text, rowid:row.id}));
-            // })
-        },1)        
-    }
-
-    function entered_item(input, list){
-        var text = input.val()
-        input.val('')
-
-        var result = add_to_database(text)
-        if (result.created){
-            add_to_list(text, result.item_id, list)            
-        }
-    }
-
-    function add_prerequisite(before_id, after_id){
-        db.execute('insert into prerequisite (before_id, after_id) values (?,?)',[before_id, after_id])
-    }
-
-
+    // TODO: make this more general?
     // resurrect items
     // Naming this thing 'r' because it's weird.  It's a result set iterator thing
     // that acts as a single result until you call 'next' on it.  So it's a row, and it's rows.
     query_iterate( db, 'select text, rowid from item', [], function(row){
-        add_to_list(row.text, row.rowid, list)
-    })
-    
-    input.keydown(function(event){
-        if (event.which == keys.enter) {
-            entered_item(input, list)
-        }
-
-        auto_search()
+        add_to_list($('#main-list'), row.text, row.rowid)
     })
     
     $('.focus').live('click', function(){
         var item = $(this).parent('li')
-        focused_item_id = item.attr('data-id')
-
+        var id = item.attr('data-id')
         var text = item.find('.text').text()
-        var before = []
-        var after = []
-        
-        // TODO: write a function that gives me results as a flat list of the first column
-        query_iterate( db, 'select item.rowid, text from prerequisite join item on before_id = item.rowid \
-                        where after_id = ?',[focused_item_id],function(row){
-            before.push(row)
-        })
-        
-        query_iterate( db, 'select item.rowid, text from prerequisite join item on after_id = item.rowid \
-                        where before_id = ?',[focused_item_id],function(row){
-            after.push(row)
-        })
-        
-        $('#details_panel').html(tmpl("item_details_template", {text:text, before:before, after:after}))
-        
-        // focused.append(item)
-        // list.addClass('editing')
-    })
-    
-    $('.done').live('click', function(){
-        moveto(this, '#done')
-        // var item = $(this).parent('li')
-        // $('#done').append(item)
+        focus_item(id, text)
     })
 
-    $('.do').live('click', function(){
-        moveto(this, '#doing')
+
+    //////////////////////////////////////////////////
+    // Reduce Repetition
+    $('#main-input').keydown(function(event){
+        if (event.which == keys.enter) {
+            entered_item($(this))
+        }
+
+        auto_search($(this))
     })
 
     $('#before-input').live('keydown', function(event){
         if (event.which == keys.enter) {
-            var input = $(this)
-            var text = input.val()
-            input.val('')
-            
-            var result = add_to_database(text)
-            var before_id = result.rowid
-            add_prerequisite(before_id, focused_item_id)
-
-            if (result.created){
-                add_to_list(text, before_id, list)
-            }
-            add_to_list(text, before_id, $('#before-list'))
-            
+            before_enter($(this))
         }
+        auto_search($(this))
     })
 
+    $('#after-input').live('keydown', function(event){
+        if (event.which == keys.enter) {
+            after_enter($(this))
+        }
+        auto_search($(this))
+    })
+
+
+    // TODO: reduce to a loop
+    $('#before .autocomplete li').live('click', function(){
+        console.debug("clicked it")
+        autocomplete_click($(this), before_enter)
+    })
+
+    $('#main .autocomplete li').live('click', function(){
+        autocomplete_click($(this), entered_item)
+    })
+
+    $('#after .autocomplete li').live('click', function(){
+        autocomplete_click($(this), after_enter)
+    })
+
+
+    ///////////////////////////////////////////////////
+    
+    // // Use these later
+    // $('.done').live('click', function(){
+    //     moveto(this, '#done')
+    // })
+    // 
+    // $('.do').live('click', function(){
+    //     moveto(this, '#doing')
+    // })
 
 })
 
 
+</script>
+
+<script type="text/html" id="entry_list_template">
+<div class="list" id="<%= name %>">
+<h3><%= flavor_text %></h3>
+<input type="text" id="<%= name %>-input" class="input">
+<ul class="autocomplete"></ul>
+
+<ul id="<%= name %>-list">
+    <% for ( var i = 0; i < list.length; i++ ) { %>
+        <%= tmpl('todo_item_template', list[i]) %>
+    <% } %>
+</ul>
+</div>
 </script>
 
 
@@ -194,22 +152,8 @@ $(function(){
 
 <script type="text/html" id="item_details_template">
 <h2><%= text %></h2>
-
-<!-- TODO: factor this structure into a template -->
-<h3>Before I can do this, I need to...</h3>
-<input type="text" id="before-input">
-
-<ul id="before-list"> <% for ( var i = 0; i < before.length; i++ ) { %>
-<%= tmpl('todo_item_template', before[i]) %>
-<% } %> </ul>
-
-<h3>After I finish this, I can...</h3>
-<input type="text" id="after-input">
-<ul id="after-list"> <% for ( var i = 0; i < after.length; i++ ) { %>
-<%= tmpl('todo_item_template', after[i]) %>
-<% } %> </ul>
-
-
+<%= tmpl('entry_list_template', {name:"before", flavor_text:"Before I can do this, I need to...", list:before }) %>
+<%= tmpl('entry_list_template', {name:"after", flavor_text:"After I finish this, I can...", list:after }) %>
 </ul>
 
 </script>
@@ -231,11 +175,8 @@ $(function(){
             <label for="before"><input name="mode" type="radio" id="before">Before</label>
             <label for="after"><input name="mode"type="radio" id="after">After</label>
         </ul> -->
-    
-        <h3>I should...</h3>
-        <input type="text" id="input">
-        <ul id="output"></ul>
-        <ul id="list"></ul>
+        
+        <div id="insert-main-list"></div>
 
         <!-- <h2>On Your Plate</h2>
         <ul id="doing"></ul>
