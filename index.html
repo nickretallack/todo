@@ -128,7 +128,7 @@ $(function(){
 
     // TODO: implement these with a template instead of clearing html
     function show_all_items(){
-        var available_mode = false
+        available_mode = false
         $('#main-list').html('')
         query_iterate( db, 'select text, rowid from item', [], function(row){
             add_to_list($('#main-list'), row.text, row.rowid)
@@ -136,7 +136,7 @@ $(function(){
     }
     
     function show_available_items(){
-        var available_mode = true
+        available_mode = true
         $('#main-list').html('')
         query_iterate( db, "select item.rowid, item.text from item \
                 left outer join prerequisite on prerequisite.after_id = item.rowid\
@@ -146,10 +146,9 @@ $(function(){
             }
         )        
     }
+
     
-    
-    
-    show_all_items()
+    show_available_items()
 })
 
 
@@ -202,8 +201,8 @@ $(function(){
         <ul id="focused"></ul>
 
         <ul id="filter">
-            <label for="all">       <input name="filter" type="radio" id="all" checked  >All</label>
-            <label for="available"> <input name="filter" type="radio" id="available"    >Available</label>
+            <label for="available"> <input name="filter" type="radio" id="available" checked>Available</label>
+            <label for="all">       <input name="filter" type="radio" id="all"   >All</label>
         </ul>
         
         <div id="insert-main-list"></div>

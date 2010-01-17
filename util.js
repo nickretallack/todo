@@ -258,12 +258,24 @@ function before_enter(input){
     
     var result = add_to_database(text)
     var before_id = result.rowid
-    add_prerequisite(before_id, focused_item_id)
+    var added = add_prerequisite(before_id, focused_item_id)
 
-    if (result.created){
+    // Gotta be reactive to new requirements and hide the things involved
+    if (available_mode)
+        hide_from_list(focused_item_id)
+
+    if (result.created)
         add_to_list($('#main-list'), text, before_id)
-    }
-    add_to_list($('#before-list'), text, before_id)
+
+    if (added)
+        add_to_list($('#before-list'), text, before_id)
+    // TODO: special highlight effect in the else case
+}
+
+function hide_from_list(id){
+    var item = $("#main-list [data-id="+id+"]")
+    console.debug('HIDE', id, item.get())
+    item.hide()
 }
 
 function after_enter(input){
@@ -271,16 +283,24 @@ function after_enter(input){
     
     var result = add_to_database(text)
     var item_id = result.rowid
-    add_prerequisite(focused_item_id, item_id)
+    var added = add_prerequisite(focused_item_id, item_id)
 
-    if (result.created){
+    if (available_mode)
+        hide_from_list(item_id)
+
+    if (result.created)
         add_to_list($('#main-list'), text, item_id)
-    }
-    add_to_list($('#after-list'), text, item_id)
+
+    if (added)
+        add_to_list($('#after-list'), text, item_id)
+    // TODO: special highlight effect in the else case
 }
 
 function add_prerequisite(before_id, after_id){
-    db.execute('insert into prerequisite (before_id, after_id) values (?,?)',[before_id, after_id])
+    var rs = db.execute('select count(*) from prerequisite where before_id = ? and after_id = ?', [before_id, after_id])
+    if (rs.isValidRow()) return false// already exists
+    db.execute('insert into prerequisite (before_id, after_id) values (?,?)', [before_id, after_id])
+    return true
 }
 
 function focus_item(id, text){
