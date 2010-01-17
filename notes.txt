@@ -1,2 +1,24 @@
+- add laundry lists in the right panel when no events are focused
+    - add a 'close' button to focused event to unfocus it
+
+- make sure you can't enter duplicate tasks.  Search for the text first,
+    - and if it already exists, return it
+
+
+- full text search supports the *, which makes my stemming totally irrelevant.
+    - toss stemming column in the database
+    - keep function around for javascript implementation
+        - might just use autocomplete's implementation
+
+
 - Implement this with sqlite first for simplicity.
     Maybe try to hack it without that later on
+
+- Would be really nice to have a proper map, instead of this jquery each
+    - perhaps I should look at closure, or underscore?
+
+    
+- Although it's a convention in CSS to use hyphens for spaces,
+this is not a valid identifier in JavaScript, so to be consistent, I will use
+underscores everywhere.  (Also, hyphens break John Resig's template system.)
+
