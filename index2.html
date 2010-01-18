@@ -27,7 +27,7 @@
         
         input.keydown(function(event){
             if (event.which == keys.enter) {
-                list.append(tmpl("todo_item_template", {text:input.val()}));
+                list.append(tmpl("item_template", {text:input.val()}));
                 input.val('')
             }
         })
@@ -43,7 +43,7 @@
     </script>
 
 
-    <script type="text/html" id="todo_item_template">
+    <script type="text/html" id="item_template">
         <li><%= text %>
             <button class="focus">focus</button>
             <button class="before">before</button>

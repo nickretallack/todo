@@ -17,7 +17,6 @@ db.execute('insert into Test values (?, ?)', ['Monkey!', new Date().getTime()]);
 var rs = db.execute('select * from Test order by Timestamp desc');
 
 while (rs.isValidRow()) {
-    (as_dict(rs))
     alert(rs.field(0) + '@' + rs.field(1));
     rs.next();
 }

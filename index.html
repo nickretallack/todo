@@ -18,7 +18,7 @@ input[type=text] {font-size:inherit; font-family:inherit; width:20em;}
 *//*        .editing .before, .editing .after {display:inline;}*/
 </style>
 <!--<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.js"></script>-->
-<script type="text/javascript" src="/script/jquery.js"></script>
+<script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="resig-templates.js"></script>
 <script type="text/javascript" src="gears_init.js"></script>
 <script type="text/javascript" src="util.js"></script>
@@ -27,22 +27,42 @@ input[type=text] {font-size:inherit; font-family:inherit; width:20em;}
 
 
 <script type="text/javascript">
-// TODO: transfer out of this database, and stop using hyphens, I guess
 var current_database = 'todo-list'
+var max_autocomplete_results = 10
 
 // TODO: check if gears exists before breaking the script
 var db = google.gears.factory.create('beta.database');
+// db.open(current_database);
+// db.remove()
 db.open(current_database);
 
-// TODO: figure out how to do this conditionally
-db.execute('create virtual table item using fts2(text, note, status)')
-db.execute('create table prerequisite (before_id integer, after_id integer)')
+db.execute('create table if not exists schema_version (version integer)')
+var rowset = db.execute('select version from schema_version order by version desc')
+// TODO: write a helper for this use case where only one column is selected.
+// and one for the case where only the first result is needed as well.
+var version = rowset.field(0)
+if (!version) {
+    db.execute('create virtual table item using fts2(text, note)')
+    db.execute('create table item_details (created_date datetime, start_date datetime, due_date datetime, \
+        done_date datetime, done_reason varchar)')
+    // done_reason should be one of (manual, dropped, prerequisite, alternative)
+    // More words if it was caused by a tree action. e.g. 
 
-// NOTES: could do some schema versioning stuff later on
+    db.execute('create table prerequisite (before_id integer, after_id integer)')
+    db.execute('create table simultaneous (item_id integer, related_item_id integer)')
+    // Simultaneous items are like an undirected graph.  I'm implementing them as directed edges for simplicity
+    // Every time I create one edge, I should create its complement edge as well.  Same goes for deleting.
 
-// db.execute('drop table item')
-// db.execute('drop table prerequisite')
+    db.execute('create table alternative (item_id integer, group_id integer)')
+    // Alternative actions are like an abstract group.  If you associate with one, you associate with all of them.
 
+    db.execute('create virtual table equipment using fts2(name)')
+    db.execute('create table equipment_needed (item_id integer, equipment_id integer)')
+
+    db.execute('insert into schema_version (version) values (1)')
+}
+
+// NOTE: next time I want to alter stuff, just add an "if version < X" clause here.
 </script>
 
 <script type="text/javascript">
@@ -51,7 +71,7 @@ var available_mode = false
 
 
 $(function(){
-    $('#insert-main-list').html(tmpl('entry_list_template', {name:"main", 
+    $('#insert-main-list').html(tmpl('editable_list_template', {name:"main", 
         flavor_text:"I should...", list:[]}))
     //     
     // var list = $('#main-list')
@@ -96,7 +116,6 @@ $(function(){
 
     // TODO: reduce to a loop
     $('#before .autocomplete li').live('click', function(){
-        console.debug("clicked it")
         autocomplete_click($(this), before_enter)
     })
 
@@ -121,11 +140,15 @@ $(function(){
 
     ///////////////////////////////////////////////////
     
-    // // Use these later
-    // $('.done').live('click', function(){
-    //     moveto(this, '#done')
-    // })
-    // 
+    $('.done').live('click', function(){
+        var itemnode = $(this).parents('.item')
+        var item_id = itemnode.attr('data-id')
+        // console.debug(item_id)
+        // db.execute('')
+        // moveto(this, '#done')
+    })
+    
+    // // Use this later
     // $('.do').live('click', function(){
     //     moveto(this, '#doing')
     // })
@@ -158,7 +181,7 @@ $(function(){
 
 </script>
 
-<script type="text/html" id="entry_list_template">
+<script type="text/html" id="editable_list_template">
 <div class="list" id="<%= name %>">
 <h3><%= flavor_text %></h3>
 <input type="text" id="<%= name %>-input" class="input">
@@ -166,14 +189,13 @@ $(function(){
 
 <ul id="<%= name %>-list">
     <% for ( var i = 0; i < list.length; i++ ) { %>
-        <%= tmpl('todo_item_template', list[i]) %>
+        <%= tmpl('item_template', list[i]) %>
     <% } %>
 </ul>
 </div>
 </script>
 
-
-<script type="text/html" id="todo_item_template">
+<script type="text/html" id="item_template">
 <li data-id="<%= rowid %>">
     <input type="radio" name="focus" class="focus" id="item-<%= text %>">
     <label class="text" for="item-<%= text %>"><%= text %></label>
@@ -184,12 +206,13 @@ $(function(){
     <button class="after">after</button>-->
 </script>
 
+<!-- TODO: stop using rowid here and make it item_id -->
 <script type="text/html" id="item_details_template">
-<h2><%= text %>
+<h2 data-id="<%= rowid %>" class="item"><%= text %>
     <button class="done">Done</button>
 </h2>
-<%= tmpl('entry_list_template', {name:"before", flavor_text:"But first I should...", list:before }) %>
-<%= tmpl('entry_list_template', {name:"after", flavor_text:"After that I can...", list:after }) %>
+<%= tmpl('editable_list_template', {name:"before", flavor_text:"But first I should...", list:before }) %>
+<%= tmpl('editable_list_template', {name:"after", flavor_text:"After that I can...", list:after }) %>
 </ul>
 
 </script>

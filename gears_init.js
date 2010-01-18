@@ -69,7 +69,6 @@
   // *Do not* define any objects if Gears is not installed. This mimics the
   // behavior of Gears defining the objects in the future.
   if (!factory) {
-    ("not factory")
     return;
   }
   // Now set up the objects, being careful not to overwrite anything.

@@ -99,7 +99,6 @@ function query_iterate(database, query, params, callback, unsafe_mode){
         query = query.replace(/\?/, JSON.stringify(params.pop()))
     }
     
-    
     var result_set = database.execute(query, params)
     for (; result_set.isValidRow(); result_set.next()) {
         var row = as_dict(result_set)
@@ -107,6 +106,32 @@ function query_iterate(database, query, params, callback, unsafe_mode){
     }
     result_set.close()
 }
+
+function query_one_column(database, query, params){
+    var list = []
+    query_iterate(database, query, params, function(row){
+        list.push(_.values(row)[0])
+    })
+    return list    
+}
+
+
+function query_one_dict(database, query, params){
+    var result
+    query_iterate(database, query, params, function(row){
+        result = row
+    })
+    return result
+}
+
+function query_one_item(database, query, params){
+    var result
+    query_iterate(database, query, params, function(row){
+        result = _.values(row)[0]
+    })
+    return result
+}
+
 
 function query_list(database, query, params){
     var list = []
@@ -186,7 +211,7 @@ function moveto(button, destination){
 }
 
 function add_to_list(list, text, id){
-    return list.prepend(tmpl("todo_item_template", {text:text, rowid:id}));
+    return list.prepend(tmpl("item_template", {text:text, rowid:id}));
 }
 
 function add_to_database(text){
@@ -198,8 +223,16 @@ function add_to_database(text){
     if (existing_row_id != null) {
         return {rowid:existing_row_id, created:false}
     }
+
+    // Create a details row along with it.  Use a transaction to ensure synchronization
+    db.execute('BEGIN');
     
-    db.execute('insert into item (text) values (?)', [text])
+    // // Might resort to this if I can't do it the safe way
+    // db.execute("insert into item_details (created_date) values (" + Date.now() + ")")
+    db.execute("insert into item_details (created_date) values (?)", ["" + Date.now()])
+    db.execute('insert into item (rowid, text) values (last_insert_rowid(), ?)', [text]);
+    db.execute('COMMIT');
+    
     return {rowid:db.lastInsertRowId, created:true}
 }
 
@@ -212,17 +245,17 @@ function auto_search(input){
         if (text == old_text) return
         input.data('old-text', text)
 
-        var search_results = smarter_search(text)
+        var search_results = smarter_search(text).slice(0,max_autocomplete_results)
         
         var autocomplete = input.parent().find('.autocomplete')
         autocomplete.html(tmpl("list_items_template", {list:search_results}))
 
         //     
-        //     // output.append(tmpl("todo_item_template", {text:this, rowid:0}));
+        //     // output.append(tmpl("item_template", {text:this, rowid:0}));
         // })
         
         // query_iterate( db, 'select text, rowid from item where item match ?',[text],function(row){
-        //     output.append(tmpl("todo_item_template", {text:row.text, rowid:row.id}));
+        //     output.append(tmpl("item_template", {text:row.text, rowid:row.id}));
         // })
     },1)
 }
@@ -237,7 +270,7 @@ function generic_enter(input, main_list, this_list){
     }
     
     if (this_list) {
-        console.debug("yeah")
+        // console.debug("yeah")
     }
 }
 
@@ -277,7 +310,6 @@ function before_enter(input){
 
 function hide_from_list(id){
     var item = $("#main-list [data-id="+id+"]")
-    console.debug('HIDE', id, item.get())
     item.hide()
 }
 
@@ -295,10 +327,8 @@ function after_enter(input){
     if (available_mode)
         hide_from_list(item_id)
 
-    console.debug("added?", added)
     if (added) {
         add_to_list($('#after-list'), text, item_id)
-        console.debug("ADDED")
     }
     // TODO: special highlight effect in the else case
 }
@@ -333,7 +363,7 @@ function focus_item(id, text){
         after.push(row)
     })
 
-    $('#details_panel').html(tmpl("item_details_template", {text:text, before:before, after:after}))
+    $('#details_panel').html(tmpl("item_details_template", {rowid:id, text:text, before:before, after:after}))
 }
 
 function autocomplete_click(item, enter){
@@ -341,7 +371,6 @@ function autocomplete_click(item, enter){
     var input = item.parents('.list').find('.input')
     input.val(text)
     input.focus()
-    console.debug("entering", input.get(), text)
     enter(input)
     
     var autocomplete = item.parents('.autocomplete').html('')
