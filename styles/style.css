@@ -1,0 +1,10 @@
+body {font-family:helvetica, arial;}
+#list_panel, #details_panel {display:inline-block; width:40%; vertical-align:top;}
+.list {margin:20px 0;}
+.autocomplete { padding:5px; color:blue; cursor:pointer;}
+li {list-style:none;}
+ul {margin:0; padding:0;}
+h1,h2,h3 { margin:0;}
+h3 {color:#aaa;}
+h2 button {display:inline-block; vertical-align:20%;} 
+input[type=text] {font-size:inherit; font-family:inherit; width:20em;}

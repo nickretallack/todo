@@ -1,3 +1,9 @@
+Always store time in the database as GMT.  Be sure to remember this when querying and displaying.
+This way, stuff can be dropped in from the server without thinking.  And I'll be familiar enough with the issue that I'm less likely to make a mistake when I eventually sync stuff over the web.
+
+
+
+
 - add laundry lists in the right panel when no events are focused
     - add a 'close' button to focused event to unfocus it
 
