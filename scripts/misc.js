@@ -7,3 +7,11 @@ function dict_items(dict){
     }
     return items
 }
+
+String.prototype.words = function(){
+    return this.trim().split(new RegExp("\\s+"))
+}
+
+String.prototype.trim = function(){
+    return this.replace(/^\s\s*/, '').replace(/\s\s*$/, '')    
+}

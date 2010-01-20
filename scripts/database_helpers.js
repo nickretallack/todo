@@ -38,10 +38,10 @@ dbh.dicts = function(query, params){
 }
 
 dbh.first = function(query, params){
-    rs.dict(db.query.execute(query, params))
+    return rs.dict(db.execute(query, params))
 }
 
-dbh.single_list = function(query, params){
+dbh.singles = function(query, params){
     var results = []
     dbh.cursor(query, params, function(row){
         results.push(row.field(0))
@@ -50,17 +50,18 @@ dbh.single_list = function(query, params){
 }
 
 dbh.single = function(query, params){
-    db.query.execute(query, params).field(0)
+    return db.execute(query, params).field(0)
 }
 
 dbh.insert_query = function(table, data){
     var keys = _.keys(data).join(', ')
     var values = _.values(data)
-    var qmarks = Functional.map('x->"?"', values).join(',')
+    var qmarks = _.map(values, function(){ return '?' }).join(',')
     return {text:'insert into '+table+' ('+keys+') values ('+qmarks+')', params:values}
 }
 
 dbh.insert = function(table, data){
     var query = dbh.insert_query(table, data)
+    console.debug(query)
     db.execute(query.text, query.params)
 }

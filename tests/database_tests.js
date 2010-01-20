@@ -5,23 +5,16 @@ function with_new_database(callback){
         callback()
     } finally {
         db.remove()
-    }    
+    }
 }
-
-
-
-
-
-
-
 
 // Tests
 
 function test_setup_database(){
     // shouldn't throw any errors or attempt to define the database twice
-    dbh.setup('test-db')
+    setup_database('test-db')
     db.close()
-    dbh.setup('test-db')
+    setup_database('test-db')
 
     var schema_version = dbh.schema_version()
     assertEquals(schema_version, dbh.current_schema_version)
@@ -62,51 +55,46 @@ function test_rs_dict_join(){
     })
 }
 
-// function test_dbh_insert(){
-//     
-// }
-
-
 function test_dbh_helpers(){
     with_new_database(function(){
+        var query = 'select * from example'
+        var data = [{text:'one', number:1}, {text:'two', number:2}, {text:'three', number:3}]
+
         db.execute('create table example (text text, number number)')
-        data = [{text:'one', number:1}, {text:'two', number:2}, {text:'three', number:3}]
-        dbh.insert('example', data)
+        _.map(data, function(item){ dbh.insert('example', item) })
 
         var index = 0
-        dbh.cursor('select * from example', [], function(row){
+        dbh.cursor(query, [], function(row){
+            assertEqualsJSON(rs.dict(row), data[index])
+            index += 1
+        })
+
+        index = 0
+        dbh.dict_cursor(query, [], function(row){
             assertEqualsJSON(row, data[index])
             index += 1
         })
         
-        // function insert(row){
-        //     db.execute('insert into example (text, number) values (?,?)', [data:text, data:number])
-        // }
-        
-        // map(, data)
-        
+        assertEqualsJSON(dbh.dicts(query, []), data)
+        assertEqualsJSON(dbh.first(query, []), data[0])
+        assertEqualsJSON(dbh.single(query, []), data[0].text)
+        assertEqualsJSON(dbh.singles(query, []), _.map(data, function(row){return row.text}))
     })
 }
 
+function test_smarter_search(){
+    try {
+        var inputs = ['first', 'second'] //, 'first second third', 'first third fourth']
+        setup_database('standard-db')
+        _.map(inputs, function(item){ console.debug(item); dbh.insert('item', {text:item})} )
+        // $(inputs).each(function(){
+        //     db.execute('insert into item (text) values (?)', [this])
+        // })
 
-// function test_smarter_search(){
-//     var inputs = ['first second third', 'first second', 'first second fourth', 'first third fourth']
-// 
-//     dbh.setup('test-db')
-//     $(inputs).each(function(){
-//         db.execute('insert into item (text) values (?)', [this])
-//     })
-// 
-//     var results = smarter_search()
-//     assertEquals()
-// 
-//     db.remove()
-// }
-
-// 
-// function test_db_helpers(){
-//     with_new_database(function(){
-//         
-//     })
-// }
-
+        // var results = con
+        assertEquals(smarter_search('first'), ['first'])
+        // assertEquals(smarter_search('first'), ['first'])
+    } finally {
+        db.remove()
+    }
+}

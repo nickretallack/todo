@@ -1,10 +1,3 @@
-function cull_stopwords(list){
-    var stopwords = ['the']
-    list = _.reject(list, function(word){ return word.length <= 1 })
-    list = _.without(list, stopwords)
-    // TODO: implement this.  Get the stopwords list from google.
-    return list
-}
 
 
 
@@ -43,35 +36,9 @@ function query_list(database, query, params){
     return list
 }
 
-function to_words(string){
-    return string.trim().split(new RegExp("\\s+"))
-}
 
 
-function generate_stems(text){
-    var words = to_words(text)
-    var stems = {}
-    $(words).each(function(){
-        var word = this
-        for(var index = 1; index < word.length; index++){
-            var stem = word.slice(0, index)
-            stems[stem] = true
-        }
-    })
-    return set_to_list(stems).join(' ')
-}
 
-
-function test_generate_stems(){
-    // assertEqualsJSON( generate_stems("joy"), ['j','jo'] )
-    // assertEqualsJSON( generate_stems("    hola      hiya  "), ['h','ho','hol','hi','hiy'])
-    assertEqualsJSON( generate_stems("joy"), 'j jo' )
-    assertEqualsJSON( generate_stems("    hola      hiya  "), 'h ho hol hi hiy')
-}
-
-String.prototype.trim = function(){
-    return this.replace(/^\s\s*/, '').replace(/\s\s*$/, '')    
-}
 
 
 // TODO: add these to prototype?

@@ -7,7 +7,7 @@
 // There is no reason to have more than one database connection, so I've opted to define this one globally.
 // Now I can easily modify its prototype and add in lots of cool functions.
 // Unfortunately, I can't do that because db is a RuntimeObject and it just discards any unknown properties.
-db = google.gears.factory.create('beta.database');
+var db = google.gears.factory.create('beta.database');
 // TODO: check if this function exists, instead of breaking the script
 // It wont exist if gears is not installed, or is too old.
 
@@ -23,48 +23,48 @@ dbh.schema_version = function(){
 dbh.current_schema_version = 1
 
 // Create the database or bring the schema up to date
-dbh.setup = function(name, reset){
-    if (reset) {
-        db.open(name);
-        db.remove()
-    }
+var setup_database = function(name, reset){
+    // if (reset) {
+    //     db.open(name);
+    //     db.remove()
+    // }
 
     db.open(name);
 
-    db.execute('create table if not exists schema_version (version integer)')
-    var version = dbh.schema_version()
+    // db.execute('create table if not exists schema_version (version integer)')
+    // var version = dbh.schema_version()
     
     // Makes use of fallthrough to get the database up to date
-    switch(version){
-        default:
+    // switch(version){
+    //     default:
             // All IDs shall be guids.  Numeric IDs wont cut it when you have to merge multiple databases
             // that are being edited by other users.
             // Row IDs will still be used for the purpose of synchronizing normal tables with their virtual
             // full-text-search-enabled counterparts.
             db.execute('create virtual table item using fts2(text, note)')
-            db.execute('create table item_details (guid text, \
-                created_date text, start_date text, due_date text, done_date text, done_reason text)')
+            // db.execute('create table item_details (guid text, \
+            //     created_date text, start_date text, due_date text, done_date text, done_reason text)')
             // done_reason should be one of (manual, dropped, prerequisite, alternative)
             // More words if it was caused by a tree action. e.g. 
 
-            db.execute('create table prerequisite (before_item_guid text, after_item_guid text)')
-            // Prerequisites are like a directed graph, though both directions are used.
-            
-            db.execute('create table simultaneous (item_guid text, related_item_guid text)')
-            // Simultaneous items are like an undirected graph.  I'm implementing them as directed edges for simplicity
-            // Every time I create one edge, I should create its complement edge as well.  Same goes for deleting.
-
-            db.execute('create table alternative (item_guid text, group_guid text)')
-            // Alternative actions are like an abstract group.  If you associate with one, you associate with all of them.
-        
-            db.execute('create virtual table equipment using fts2(name)')
-            db.execute('create table equipment_needed (item_guid text, equipment_guid text)')
-
-            db.execute('insert into schema_version (version) values (1)')
-        case 1:
-            // Votes may be included in a later version of the schema
-            // Vote date is included so we can disallow voting again until some time has passed since the last vote
-    }
+            // db.execute('create table prerequisite (before_item_guid text, after_item_guid text)')
+            // // Prerequisites are like a directed graph, though both directions are used.
+            // 
+            // db.execute('create table simultaneous (item_guid text, related_item_guid text)')
+            // // Simultaneous items are like an undirected graph.  I'm implementing them as directed edges for simplicity
+            // // Every time I create one edge, I should create its complement edge as well.  Same goes for deleting.
+            // 
+            // db.execute('create table alternative (item_guid text, group_guid text)')
+            // // Alternative actions are like an abstract group.  If you associate with one, you associate with all of them.
+            //         
+            // db.execute('create virtual table equipment using fts2(name)')
+            // db.execute('create table equipment_needed (item_guid text, equipment_guid text)')
+            // 
+            // db.execute('insert into schema_version (version) values (1)')
+    //     case 1:
+    //         // Votes may be included in a later version of the schema
+    //         // Vote date is included so we can disallow voting again until some time has passed since the last vote
+    // }
     // NOTE: next time I want to alter stuff, just add an "if version < X" clause here.
     // NOTE: haha, maybe this would be a fun way to use switch statement fallthrough
 }
@@ -73,7 +73,7 @@ dbh.setup = function(name, reset){
 // Search for every non-stop-word.  Only include stemming on the last word.
 // Score results by how many searches they came up in
 function smarter_search(string){
-    var words = cull_stopwords(to_words(string))
+    var words = cull_stopwords(string.words())
     if (words.length == 0) return [] // Don't bother searching if there's no input
 
     // Stem search on the last word, since it's probably the one you're currently typing
@@ -104,6 +104,14 @@ function smarter_search(string){
     return values
 }
 
+// Avoid getting useless search results
+function cull_stopwords(list){
+    var stopwords = ['the']
+    list = _.reject(list, function(word){ return word.length <= 1 })
+    list = _.without(list, stopwords)
+    // TODO: implement this.  Get the stopwords list from google.
+    return list
+}
 
 
 
