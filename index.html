@@ -5,8 +5,6 @@
 
 <!-- Dependencies (and Credits) -->
 <script type="text/javascript" src="lib/jquery.js"></script>            <!-- http://jquery.com/ -->
-<script type="text/javascript" src="lib/gears/gears_init.js"></script>        <!-- http://code.google.com/apis/gears/ -->
-<script type="text/javascript" src="lib/gears/gears_ext.js"></script>        <!-- http://code.google.com/p/gears/issues/detail?id=111&redir=1 -->
 <script type="text/javascript" src="lib/resig-templates.js"></script>   <!-- http://ejohn.org/blog/javascript-micro-templating/ -->
 <script type="text/javascript" src="lib/json2.js"></script>             <!-- http://json.org/json2.js -->
 <script type="text/javascript" src="lib/underscore.js"></script>        <!-- http://documentcloud.github.com/underscore/ -->
@@ -17,131 +15,129 @@
 <!--<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.js"></script>-->
 
 <!-- Components (by Me) -->
-<script type="text/javascript" src="scripts/database.js"></script>
+<script type="text/javascript" src="scripts/html5-database.js"></script>
 <!-- <script type="text/javascript" src="scripts/database_helpers.js"></script> -->
 <script type="text/javascript" src="scripts/util.js"></script>
-
 <script type="text/javascript">
-if (!google.gears.factory.create) {
-    $(function(){
-        $('body').html("Please install google gears")        
-    })
-} else {
-    init()
-}
-
 // Globals.  How can I make them not so global...
-var current_database = 'todo-list'
+// var current_database = 'todo-list'
+var state = []
+
 var max_autocomplete_results = 10
 var focused_item_id
 var available_mode = false
+var db
 
-function init(){
-    setup_database(current_database)
-    console.debug("initting")
-    $(function(){
-        console.debug("initting")
-        $('#insert-main-list').html(tmpl('editable_list_template', {name:"main", 
-            flavor_text:"I should...", list:[]}))
-
-        $('.focus').live('click', function(){
-            var item = $(this).parent('li')
-            var id = item.attr('data-id')
-            var text = item.find('.text').text()
-            focus_item(id, text)
-        })
-
-
-        //////////////////////////////////////////////////
-        // Reduce Repetition
-        $('#main-input').keydown(function(event){
-            if (event.which == keys.enter) {
-                entered_item($(this))
-            }
-
-            auto_search($(this))
-        })
-
-        $('#before-input').live('keydown', function(event){
-            if (event.which == keys.enter) {
-                before_enter($(this))
-            }
-            auto_search($(this))
-        })
-
-        $('#after-input').live('keydown', function(event){
-            if (event.which == keys.enter) {
-                after_enter($(this))
-            }
-            auto_search($(this))
-        })
-
-
-        // TODO: reduce to a loop
-        $('#before .autocomplete li').live('click', function(){
-            autocomplete_click($(this), before_enter)
-        })
-
-        $('#main .autocomplete li').live('click', function(){
-            autocomplete_click($(this), entered_item)
-        })
-
-        $('#after .autocomplete li').live('click', function(){
-            autocomplete_click($(this), after_enter)
-        })
-
-
-        $('#filter #all').click(function(event){
-            show_all_items()
-        })
-
-        $('#filter #available').click(function(event){
-            show_available_items()
-        })
-
+$(function(){
+    if (window.openDatabase) {
+         setup_database("todo")
+         console.debug(db)
+    } else {
+        $('body').html("Your browser does not support html5 databases")
+        return
+    }
     
+    return
+    
+    $('#insert-main-list').html(tmpl('editable_list_template', {name:"main", 
+        flavor_text:"I should...", list:[]}))
 
-        ///////////////////////////////////////////////////
-    
-        $('.done').live('click', function(){
-            var itemnode = $(this).parents('.item')
-            var item_id = itemnode.attr('data-id')
-            // console.debug(item_id)
-            // db.execute('')
-            // moveto(this, '#done')
-        })
-    
-        // // Use this later
-        // $('.do').live('click', function(){
-        //     moveto(this, '#doing')
-        // })
+    $('.focus').live('click', function(){
+        var item = $(this).parent('li')
+        var id = item.attr('data-id')
+        var text = item.find('.text').text()
+        focus_item(id, text)
+    })
 
-        // TODO: implement these with a template instead of clearing html
-        function show_all_items(){
-            available_mode = false
-            $('#main-list').html('')
-            db.select('select text, rowid from item', [], function(row){
-                add_to_list($('#main-list'), row.text, row.rowid)
-            })
-        }
-    
-        function show_available_items(){
-            available_mode = true
-            $('#main-list').html('')
-            db.select("select item.rowid, item.text from item \
-                    left outer join prerequisite on prerequisite.after_id = item.rowid\
-                    where prerequisite.before_id is null", [], 
-                function(row){
-                    add_to_list($('#main-list'), row.text, row.rowid)
-                }
-            )        
+
+    //////////////////////////////////////////////////
+    // Reduce Repetition
+    $('#main-input').keydown(function(event){
+        if (event.which == keys.enter) {
+            entered_item($(this))
         }
 
-    
+        auto_search($(this))
+    })
+
+    $('#before-input').live('keydown', function(event){
+        if (event.which == keys.enter) {
+            before_enter($(this))
+        }
+        auto_search($(this))
+    })
+
+    $('#after-input').live('keydown', function(event){
+        if (event.which == keys.enter) {
+            after_enter($(this))
+        }
+        auto_search($(this))
+    })
+
+
+    // TODO: reduce to a loop
+    $('#before .autocomplete li').live('click', function(){
+        autocomplete_click($(this), before_enter)
+    })
+
+    $('#main .autocomplete li').live('click', function(){
+        autocomplete_click($(this), entered_item)
+    })
+
+    $('#after .autocomplete li').live('click', function(){
+        autocomplete_click($(this), after_enter)
+    })
+
+
+    $('#filter #all').click(function(event){
+        show_all_items()
+    })
+
+    $('#filter #available').click(function(event){
         show_available_items()
     })
-}
 
+
+
+    ///////////////////////////////////////////////////
+
+    $('.done').live('click', function(){
+        var itemnode = $(this).parents('.item')
+        var item_id = itemnode.attr('data-id')
+        // console.debug(item_id)
+        // db.execute('')
+        // moveto(this, '#done')
+    })
+
+    // // Use this later
+    // $('.do').live('click', function(){
+    //     moveto(this, '#doing')
+    // })
+
+    // TODO: implement these with a template instead of clearing html
+    function show_all_items(){
+        available_mode = false
+        $('#main-list').html('')
+        db.select('select text, rowid from item', [], function(row){
+            add_to_list($('#main-list'), row.text, row.rowid)
+        })
+    }
+
+    function show_available_items(){
+        available_mode = true
+        $('#main-list').html('')
+        db.select("select item.rowid, item.text from item \
+                left outer join prerequisite on prerequisite.after_id = item.rowid\
+                where prerequisite.before_id is null", [], 
+            function(row){
+                add_to_list($('#main-list'), row.text, row.rowid)
+            }
+        )        
+    }
+
+
+    show_available_items()
+})
 </script>
 
 <script type="text/html" id="editable_list_template">
