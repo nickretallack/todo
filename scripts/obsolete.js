@@ -29,3 +29,38 @@ function test_generate_stems(){
     assertEqualsJSON( generate_stems("joy"), 'j jo' )
     assertEqualsJSON( generate_stems("    hola      hiya  "), 'h ho hol hi hiy')
 }
+
+
+function query_one_column(database, query, params){
+    var list = []
+    dbh.dict_cursor(query, params, function(row){
+        list.push(_.values(row)[0])
+    })
+    return list    
+}
+
+
+function query_one_dict(database, query, params){
+    var result
+    dbh.dict_cursor(query, params, function(row){
+        result = row
+    })
+    return result
+}
+
+function query_one_item(database, query, params){
+    var result
+    dbh.dict_cursor(query, params, function(row){
+        result = _.values(row)[0]
+    })
+    return result
+}
+
+
+function query_list(database, query, params){
+    var list = []
+    dbh.dict_cursor(query, params, function(row){
+        list.push(row)
+    })
+    return list
+}

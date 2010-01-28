@@ -1,36 +1,31 @@
 test("set up database", function(){
     // shouldn't throw any errors or attempt to define the database twice
-    try{
-        setup_database('test-db')
-        // db.close()
-        // setup_database('test-db')
-
-        var schema_version = dbh.schema_version()
-        equals(schema_version, dbh.current_schema_version)
-    } finally {
-        db.remove()    
-    }
-})
-
-test("gears ext select single", function(){
-    with_new_database(function(){
-        db.execute("create table a (b text)")
-        db.execute("insert into a (b) values ('hello')")
-        var x = db.selectAll("select * from b", [])
-        equals(x, 'hello')
-    })
+    setup_database('test-db2')
+    equals('1.0', db.version)
 })
 
 
-// // Test Helpers
-function with_new_database(callback){
-    try{
-        db.open('test-db')
-        callback()
-    } finally {
-        db.remove()
-    }
-}
+
+
+// test("gears ext select single", function(){
+//     with_new_database(function(){
+//         db.execute("create table a (b text)")
+//         db.execute("insert into a (b) values ('hello')")
+//         var x = db.selectAll("select * from b", [])
+//         equals(x, 'hello')
+//     })
+// })
+// 
+// 
+// // // Test Helpers
+// function with_new_database(callback){
+//     try{
+//         db.open('test-db')
+//         callback()
+//     } finally {
+//         db.remove()
+//     }
+// }
 // 
 // // Tests
 // 

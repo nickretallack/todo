@@ -1,70 +1,130 @@
+// Globals.  How can I make them not so global...
+// var current_database = 'todo-list'
+var state = []
+
+var max_autocomplete_results = 10
+var focused_item_id
+var available_mode = false
+var db
+
+function setup_stuff(){
+    if (window.openDatabase) {
+         setup_database("todo")
+    } else {
+        $('body').html("Your browser does not support html5 databases")
+        return
+    }
+    
+    $('#insert-main-list').html(tmpl('editable_list_template', {name:"main", 
+        flavor_text:"I should...", list:[]}))
 
 
-
-
-function query_one_column(database, query, params){
-    var list = []
-    dbh.dict_cursor(query, params, function(row){
-        list.push(_.values(row)[0])
+    $('.focus').live('click', function(){
+        var item = $(this).parent('li')
+        var id = item.attr('data-id')
+        var text = item.find('.text').text()
+        focus_item(id, text)
     })
-    return list    
-}
 
 
-function query_one_dict(database, query, params){
-    var result
-    dbh.dict_cursor(query, params, function(row){
-        result = row
+    //////////////////////////////////////////////////
+    // Reduce Repetition
+    $('#main-input').keydown(function(event){
+        if (event.which == keys.enter) {
+            entered_item($(this))
+        }
+
+        // auto_search($(this))
     })
-    return result
-}
 
-function query_one_item(database, query, params){
-    var result
-    dbh.dict_cursor(query, params, function(row){
-        result = _.values(row)[0]
+    return // auto-search stuff is not ready yet
+
+
+    $('#before-input').live('keydown', function(event){
+        if (event.which == keys.enter) {
+            before_enter($(this))
+        }
+        auto_search($(this))
     })
-    return result
-}
 
-
-function query_list(database, query, params){
-    var list = []
-    dbh.dict_cursor(query, params, function(row){
-        list.push(row)
+    $('#after-input').live('keydown', function(event){
+        if (event.which == keys.enter) {
+            after_enter($(this))
+        }
+        auto_search($(this))
     })
-    return list
+
+
+    // TODO: reduce to a loop
+    $('#before .autocomplete li').live('click', function(){
+        autocomplete_click($(this), before_enter)
+    })
+
+    $('#main .autocomplete li').live('click', function(){
+        autocomplete_click($(this), entered_item)
+    })
+
+    $('#after .autocomplete li').live('click', function(){
+        autocomplete_click($(this), after_enter)
+    })
+
+
+    $('#filter #all').click(function(event){
+        show_all_items()
+    })
+
+    $('#filter #available').click(function(event){
+        show_available_items()
+    })
+
+
+
+    ///////////////////////////////////////////////////
+
+    $('.done').live('click', function(){
+        var itemnode = $(this).parents('.item')
+        var item_id = itemnode.attr('data-id')
+        // console.debug(item_id)
+        // db.execute('')
+        // moveto(this, '#done')
+    })
+
+    // // Use this later
+    // $('.do').live('click', function(){
+    //     moveto(this, '#doing')
+    // })
+
+    show_available_items()
 }
 
 
 
 
-
-
-// TODO: add these to prototype?
-function key_value_swap(dict){
-  var result = {}
-  for (var key in dict){
-    result[dict[key]] = key
-  }
-  return result
+// TODO: implement these with a template instead of clearing html
+function show_all_items(){
+    available_mode = false
+    $('#main-list').html('')
+    db.select('select text, rowid from item', [], function(row){
+        add_to_list($('#main-list'), row.text, row.rowid)
+    })
 }
 
-function list_to_set(list){
-  var set = {}
-  $(list).each(function(){
-    set[this] = true
-  })
-  return set
+function show_available_items(){
+    return
+    
+    available_mode = true
+    $('#main-list').html('')
+    db.select("select item.rowid, item.text from item \
+            left outer join prerequisite on prerequisite.after_id = item.rowid\
+            where prerequisite.before_id is null", [], 
+        function(row){
+            add_to_list($('#main-list'), row.text, row.rowid)
+        }
+    )        
 }
 
-function set_to_list(set){
-  var list = []
-  for (var item in set){
-    list.push(item)
-  }
-  return list
-}
+
+
 
 var keys = {enter:13, tab:9, up:38, down:40, left:37, right:39, del:8, space:32}
 var codes = key_value_swap(keys)
@@ -85,7 +145,8 @@ function now_GMT(){
 }
 
 
-function add_to_database(text){
+
+function add_to_database_GEARS(text){
     // find first.  No duplicates allowed
     var existing_row_id = null
     dbh.dict_cursor('select rowid, text from item where text match ?', [text], function(row){
@@ -224,14 +285,16 @@ function focus_item(id, text){
     // Not that it matters that much.  This is kind of like a view now, which is nice.
 
     // TODO: write a function that gives me results as a flat list of the first column
-    dbh.dict_cursor('select item.rowid, text from prerequisite join item on before_id = item.rowid \
-                    where after_id = ?',[focused_item_id],function(row){
-        before.push(row)
-    })
+    db.transaction(function(tx){
+        tx.executeSql('select item.id, text from prerequisite join item on before_id = item.id \
+                        where after_id = ?',[focused_item_id], function(result){
+            before = result
+        })
 
-    dbh.dict_cursor('select item.rowid, text from prerequisite join item on after_id = item.rowid \
-                    where before_id = ?',[focused_item_id],function(row){
-        after.push(row)
+        tx.executeSql('select item.id, text from prerequisite join item on after_id = item.id \
+                        where before_id = ?',[focused_item_id],function(result){
+            after = result
+        })        
     })
 
     $('#details_panel').html(tmpl("item_details_template", {rowid:id, text:text, before:before, after:after}))
@@ -258,4 +321,29 @@ function consume_value(input){
 
 function compare_by_value(left, right){
     return right.value - left.value
+}
+
+// TODO: add these to prototype?
+function key_value_swap(dict){
+  var result = {}
+  for (var key in dict){
+    result[dict[key]] = key
+  }
+  return result
+}
+
+function list_to_set(list){
+  var set = {}
+  $(list).each(function(){
+    set[this] = true
+  })
+  return set
+}
+
+function set_to_list(set){
+  var list = []
+  for (var item in set){
+    list.push(item)
+  }
+  return list
 }
