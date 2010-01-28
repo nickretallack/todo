@@ -24,47 +24,50 @@ dbh.current_schema_version = 1
 
 // Create the database or bring the schema up to date
 var setup_database = function(name, reset){
-    // if (reset) {
-    //     db.open(name);
-    //     db.remove()
-    // }
-
+    if (reset) {
+        db.open(name);
+        db.remove()
+    }
+    
     db.open(name);
 
-    // db.execute('create table if not exists schema_version (version integer)')
-    // var version = dbh.schema_version()
+    db.execute('create table if not exists schema_version (version integer)')
+    var version = dbh.schema_version()
     
     // Makes use of fallthrough to get the database up to date
-    // switch(version){
-    //     default:
+    switch(version){
+        default:
             // All IDs shall be guids.  Numeric IDs wont cut it when you have to merge multiple databases
             // that are being edited by other users.
             // Row IDs will still be used for the purpose of synchronizing normal tables with their virtual
             // full-text-search-enabled counterparts.
             db.execute('create virtual table item using fts2(text, note)')
-            // db.execute('create table item_details (guid text, \
-            //     created_date text, start_date text, due_date text, done_date text, done_reason text)')
+            db.execute('create table item_details (guid text, \
+                created_date text, start_date text, due_date text, done_date text, done_reason text)')
             // done_reason should be one of (manual, dropped, prerequisite, alternative)
             // More words if it was caused by a tree action. e.g. 
-
-            // db.execute('create table prerequisite (before_item_guid text, after_item_guid text)')
-            // // Prerequisites are like a directed graph, though both directions are used.
-            // 
-            // db.execute('create table simultaneous (item_guid text, related_item_guid text)')
-            // // Simultaneous items are like an undirected graph.  I'm implementing them as directed edges for simplicity
-            // // Every time I create one edge, I should create its complement edge as well.  Same goes for deleting.
-            // 
-            // db.execute('create table alternative (item_guid text, group_guid text)')
-            // // Alternative actions are like an abstract group.  If you associate with one, you associate with all of them.
-            //         
-            // db.execute('create virtual table equipment using fts2(name)')
-            // db.execute('create table equipment_needed (item_guid text, equipment_guid text)')
-            // 
-            // db.execute('insert into schema_version (version) values (1)')
-    //     case 1:
-    //         // Votes may be included in a later version of the schema
-    //         // Vote date is included so we can disallow voting again until some time has passed since the last vote
-    // }
+    
+            console.debug("urghhh")
+            db.execute('create table prerequisite (before_item_guid text, after_item_guid text)')
+            // Prerequisites are like a directed graph, though both directions are used.
+            
+            db.execute('create table simultaneous (item_guid text, related_item_guid text)')
+            // Simultaneous items are like an undirected graph.  I'm implementing them as directed edges for simplicity
+            // Every time I create one edge, I should create its complement edge as well.  Same goes for deleting.
+            
+            db.execute('create table alternative (item_guid text, group_guid text)')
+            // Alternative actions are like an abstract group.  If you associate with one, you associate with all of them.
+                    
+            db.execute('create virtual table equipment using fts2(name)')
+            db.execute('create table equipment_needed (item_guid text, equipment_guid text)')
+            
+            db.execute('insert into schema_version (version) values (1)')
+            console.debug("urghhh")
+        case 1:
+            // Votes may be included in a later version of the schema
+            // Vote date is included so we can disallow voting again until some time has passed since the last vote
+    }
+    console.debug("urghhh")
     // NOTE: next time I want to alter stuff, just add an "if version < X" clause here.
     // NOTE: haha, maybe this would be a fun way to use switch statement fallthrough
 }

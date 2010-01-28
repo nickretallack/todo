@@ -1,0 +1,14 @@
+<script>
+var debugs = 0
+function debug(){
+    console.debug(debugs, arguments)
+    debugs += 1
+}
+
+var db = openDatabase("notes", "", "The Example Notes App!", 1048576);
+db.transaction(function(tx){
+    tx.executeSql('create virtual table things using fts3(title TEXT, body TEXT)', [], debug, debug, debug);
+    // tx.executeSql('CREATE TABLE IF NOT EXISTS Notes(title TEXT, body TEXT)', [], debug, debug, debug);
+    // tx.executeSql('CREATE virtual table notes2 using fts2(title, body)', [], debug, debug, debug);
+})
+</script>

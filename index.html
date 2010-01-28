@@ -1,11 +1,12 @@
 <!doctype html>
 <html>
 <head>
-<link rel="stylesheet" type="text/css" href="style.css">
+<link rel="stylesheet" type="text/css" href="styles/style.css">
 
 <!-- Dependencies (and Credits) -->
 <script type="text/javascript" src="lib/jquery.js"></script>            <!-- http://jquery.com/ -->
-<script type="text/javascript" src="lib/gears_init.js"></script>        <!-- http://code.google.com/apis/gears/ -->
+<script type="text/javascript" src="lib/gears/gears_init.js"></script>        <!-- http://code.google.com/apis/gears/ -->
+<script type="text/javascript" src="lib/gears/gears_ext.js"></script>        <!-- http://code.google.com/p/gears/issues/detail?id=111&redir=1 -->
 <script type="text/javascript" src="lib/resig-templates.js"></script>   <!-- http://ejohn.org/blog/javascript-micro-templating/ -->
 <script type="text/javascript" src="lib/json2.js"></script>             <!-- http://json.org/json2.js -->
 <script type="text/javascript" src="lib/underscore.js"></script>        <!-- http://documentcloud.github.com/underscore/ -->
@@ -17,7 +18,7 @@
 
 <!-- Components (by Me) -->
 <script type="text/javascript" src="scripts/database.js"></script>
-<script type="text/javascript" src="scripts/database_helpers.js"></script>
+<!-- <script type="text/javascript" src="scripts/database_helpers.js"></script> -->
 <script type="text/javascript" src="scripts/util.js"></script>
 
 <script type="text/javascript">
@@ -37,7 +38,9 @@ var available_mode = false
 
 function init(){
     setup_database(current_database)
+    console.debug("initting")
     $(function(){
+        console.debug("initting")
         $('#insert-main-list').html(tmpl('editable_list_template', {name:"main", 
             flavor_text:"I should...", list:[]}))
 
@@ -117,7 +120,7 @@ function init(){
         function show_all_items(){
             available_mode = false
             $('#main-list').html('')
-            dbh.dict_cursor('select text, rowid from item', [], function(row){
+            db.select('select text, rowid from item', [], function(row){
                 add_to_list($('#main-list'), row.text, row.rowid)
             })
         }
@@ -125,7 +128,7 @@ function init(){
         function show_available_items(){
             available_mode = true
             $('#main-list').html('')
-            dbh.dict_cursor("select item.rowid, item.text from item \
+            db.select("select item.rowid, item.text from item \
                     left outer join prerequisite on prerequisite.after_id = item.rowid\
                     where prerequisite.before_id is null", [], 
                 function(row){

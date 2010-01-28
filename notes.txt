@@ -1,6 +1,18 @@
 Always store time in the database as GMT.  Be sure to remember this when querying and displaying.
 This way, stuff can be dropped in from the server without thinking.  And I'll be familiar enough with the issue that I'm less likely to make a mistake when I eventually sync stuff over the web.
 
+Ok, here's the thing that's got me stressing lately:
+	- gears screws up when I try to debug it in safari
+		- then use firefox!  Duh!!!
+		- or work around the quoting issue by quoting manually, geez!   It's not a big deal
+	- gears doesn't support some of my browsers
+		- then downgrade them to versions it supports
+	- html5 database doesn't support full text search
+		- makes it kinda useless, yeah.  Guess I could search with %like% and then cull out the false positives.
+	- could do it all in memory
+		- serialize the state to localstorage constantly.  In fact, don't even bother to serialize, just set it if you can
+			- if it gets too slow, try journalling -- write new state changes as entries, then fold them up into a newly serialized package
+		- manual stemming is easy enough.  I've aready implemented it pretty much.
 
 
 
