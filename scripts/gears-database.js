@@ -23,9 +23,9 @@ var setup_database = function(name, reset){
             // that are being edited by other users.
             // Row IDs will still be used for the purpose of synchronizing normal tables with their virtual
             // full-text-search-enabled counterparts.
-            db.do('create virtual table item_text using fts2(text, note)')
             db.do('create table item (id text, \
                 created_date text, start_date text, due_date text, done_date text, done_reason text)')
+            db.do('create virtual table item_text using fts2(text, note)')
             // done_reason should be one of (manual, dropped, prerequisite, alternative)
             // More words if it was caused by a tree action. e.g. 
     
@@ -85,6 +85,10 @@ function cull_stopwords(list){
     return list
 }
 
+function iso_date_now(){
+    return Date.now().toISOString()
+}
+
 function save_item(text){
     // find first.  No duplicates allowed
     var id = db.selectColumn('select item.id from item join item_text \
@@ -94,7 +98,7 @@ function save_item(text){
     // Create a new one with a unique ID.
     id = Math.uuid()
     // TODO: should I check to see if it has collided?  Hopefully that never happens.
-    var date = Date.now().toISOString()    
+    var date = iso_date_now()
     db.transaction(function(db){
         // Follows the virtual table synchronization pattern explained here:
         // http://code.google.com/apis/gears/api_database.html
@@ -104,13 +108,21 @@ function save_item(text){
     return {id:id, created:true}
 }
 
+function mark_item_done(id){
+    db.do('update item set done_date = date(?) where id = ?', 
+        [iso_date_now(), id])
+}
+
 function save_prerequisite(after_item_id, before_item_id){
     // Don't save any bad relationships
     // TODO: what if there are cycles?
-    if (after_item_id == before_item_id) return
-    if (!after_item_id || !before_item_id) return
-    db.do('insert or replace into prerequisite (after_item_id, before_item_id) values (?,?)', 
+    if (after_item_id == before_item_id) return {created:false}
+    if (!after_item_id || !before_item_id) return {created:false}
+    if (db.selectSingle('select count(*) from prerequisite where after_item_id = ? and before_item_id = ?',
+        [after_item_id, before_item_id])) return {created:false}
+    db.do('insert into prerequisite (after_item_id, before_item_id) values (?,?)', 
         [after_item_id, before_item_id])
+    return {created:true}
 }
 
 function remove_prerequisite(after_item_id, before_item_id){
@@ -137,6 +149,12 @@ function get_postrequisites(id){
         where before_item_id = ?', [id])
 }
 
+function get_item_details(id){
+    return db.selectRow("select item_text.text, item_text.note, item.* \
+        from item join item_text on item.rowid = item_text.rowid \
+        where item.id = ?", [id])
+}
+
 // TODO: does this query work without the []?
 function get_items(){
     return db.selectAll('select item.id, item_text.text \
@@ -147,13 +165,18 @@ function get_available_items(){
     return db.selectAll("select item.id, item_text.text \
         from item join item_text on item.rowid = item_text.rowid \
         left outer join prerequisite on prerequisite.after_item_id = item.id \
-        where prerequisite.before_item_id is null")
+        where prerequisite.before_item_id is null \
+        and done_date is null")
 }
 
-function get_item_details(id){
-    return db.selectRow("select * \
-        from item join item_text on item.rowid = item_text.rowid \
-        where item.id = ?", [id])
+function get_unfinished_items(){
+    return db.selectAll('select item.id, item_text.text \
+    from item join item_text on item.rowid = item_text.rowid \
+    where item.done_date is null')
 }
 
-
+function get_finished_items(){
+    return db.selectAll('select item.id, item_text.text \
+    from item join item_text on item.rowid = item_text.rowid \
+    where item.done_date is not null')
+}

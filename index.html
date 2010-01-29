@@ -32,11 +32,15 @@ $(function(){ setup_stuff() })
 <ul class="autocomplete"></ul>
 
 <ul id="<%= name %>-list">
-    <% for ( var i = 0; i < list.length; i++ ) { %>
-        <%= tmpl('item_template', list[i]) %>
-    <% } %>
+    <%= tmpl('item_list_template', {items:items}) %>
 </ul>
 </div>
+</script>
+
+<script type="text/html" id="item_list_template">
+<% for ( var i = 0; i < items.length; i++ ) { %>
+    <%= tmpl('item_template', items[i]) %>
+<% } %>
 </script>
 
 <script type="text/html" id="item_template">
@@ -54,8 +58,8 @@ $(function(){ setup_stuff() })
 <h2 data-id="<%= id %>" class="item"><%= text %>
     <button class="done">Done</button>
 </h2>
-<%= tmpl('editable_list_template', {name:"before", flavor_text:"But first I should...", list:before }) %>
-<%= tmpl('editable_list_template', {name:"after", flavor_text:"After that I can...", list:after }) %>
+<%= tmpl('editable_list_template', {name:"before", flavor_text:"But first I should...", items:before }) %>
+<%= tmpl('editable_list_template', {name:"after", flavor_text:"After that I can...", items:after }) %>
 </ul>
 
 </script>

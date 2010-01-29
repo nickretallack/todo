@@ -1,25 +1,25 @@
 // Globals.  How can I make them not so global...
-// var current_database = 'todo-list'
-var state = []
-
+var current_database = 'todos'
 var max_autocomplete_results = 10
 var focused_item_id
 var available_mode = false
-var db
 
 function setup_stuff(){
-    setup_database('todos')
-    
-    $('#insert-main-list').html(tmpl('editable_list_template', 
-        {name:"main", flavor_text:"I should...", list:[]}))
-    
+    setup_database(current_database)
+    make_templated_elements()
+    make_event_handlers()
+    show_available_items()
+}
+
+
+
+
+function make_event_handlers(){
     $('.focus').live('click', function(){
         var item = $(this).parent('li')
         var id = item.attr('data-id')
-        var text = item.find('.text').text()
-        focus_item(id, text)
-    })
-
+        focus_item(id)
+    })    
 
     //////////////////////////////////////////////////
     // Reduce Repetition
@@ -69,16 +69,27 @@ function setup_stuff(){
         show_available_items()
     })
 
+    $('#filter #unfinished').click(function(event){
+        show_unfinished_items()
+    })
+
+    $('#filter #finished').click(function(event){
+        show_finished_items()
+    })
 
 
     ///////////////////////////////////////////////////
 
     $('.done').live('click', function(){
-        var itemnode = $(this).parents('.item')
-        var item_id = itemnode.attr('data-id')
-        // console.debug(item_id)
-        // db.execute('')
-        // moveto(this, '#done')
+        var item_node = $(this).parents('.item')
+        var item_id = item_node.attr('data-id')
+        mark_item_done(item_id)
+        if (mode != 'finished') {
+            $('.list [data-id='+item_id+']').remove() // remove from all lists
+        }
+        
+        // TODO: display congratulatory panel
+        
     })
 
     // // Use this later
@@ -86,8 +97,15 @@ function setup_stuff(){
     //     moveto(this, '#doing')
     // })
 
-    show_available_items()
+
 }
+
+function make_templated_elements(){
+    $('#insert-main-list').html(tmpl('editable_list_template', 
+        {name:"main", flavor_text:"I should...", items:[]}))    
+}
+
+
 
 
 // rename to something like item details
@@ -97,37 +115,41 @@ function setup_stuff(){
 // We'll need the extended details anyway
 function focus_item(id, text){
     focused_item_id = id
-
+    console.debug("WHAT")
+    var item_details = get_item_details(id)
     var before = get_prerequisites(id)
     var after = get_postrequisites(id)
-
+    console.debug(item_details)
     // console.debug(id, before, after)
 
-    $('#details_panel').html(tmpl("item_details_template", {id:id, text:text, before:before, after:after}))
+    $('#details_panel').html(tmpl("item_details_template", {id:id, text:item_details.text, before:before, after:after}))
 }
 
 
 
-// TODO: implement these with a template instead of clearing html
 function show_all_items(){
-    available_mode = false
-    $('#main-list').html('')
+    mode = "all"
     var items = get_items()
-    _.each(items, function(item){
-        add_to_list($('#main-list'), item.text, item.id)
-    })
+    $('#main-list').html(tmpl('item_list_template', {items:items}))
 }
 
 function show_available_items(){
-    available_mode = true
-    $('#main-list').html('')
+    mode = "available"
     var items = get_available_items()
-    _.each(items, function(item){
-        add_to_list($('#main-list'), item.text, item.id)
-    })
+    $('#main-list').html(tmpl('item_list_template', {items:items}))
 }
 
+function show_unfinished_items(){
+    mode = "unfinished"
+    var items = get_unfinished_items()
+    $('#main-list').html(tmpl('item_list_template', {items:items}))    
+}
 
+function show_finished_items(){
+    mode = "finished"
+    var items = get_finished_items()
+    $('#main-list').html(tmpl('item_list_template', {items:items}))    
+}
 
 
 var keys = {enter:13, tab:9, up:38, down:40, left:37, right:39, del:8, space:32}
@@ -207,12 +229,12 @@ function before_enter(input){
     
     var result = save_item(text)
     var before_item_id = result.id
-    var added = save_prerequisite(focused_item_id, before_item_id)
+    var added = save_prerequisite(focused_item_id, before_item_id).created
 
-    // Gotta be reactive to new requirements and hide the things involved
-    if (available_mode)
+    if (mode == 'available')
         hide_from_list(focused_item_id)
 
+    // as a before_item, this can't possibly be hidden yet...
     if (result.created)
         add_to_list($('#main-list'), text, before_item_id)
 
@@ -223,7 +245,7 @@ function before_enter(input){
 
 function hide_from_list(id){
     var item = $("#main-list [data-id="+id+"]")
-    item.hide()
+    item.remove()
 }
 
 function after_enter(input){
@@ -231,13 +253,13 @@ function after_enter(input){
     
     var result = save_item(text)
     var item_id = result.id
-    var added = save_prerequisite(item_id, focused_item_id)
+    var added = save_prerequisite(item_id, focused_item_id).created
 
     if (result.created)
         add_to_list($('#main-list'), text, item_id)
 
     // If this is always a post-requisite, there's no way it could show in available mode
-    if (available_mode)
+    if (mode == 'available')
         hide_from_list(item_id)
 
     if (added) {

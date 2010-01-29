@@ -45,10 +45,16 @@ test("get items", function(){
         same(tasks, texts, "Should fetch all items")
         
         var available_items = get_available_items()
-        console.debug(available_items)
         same(items, available_items, "Available and All should be the same with no prereqs enabled")
+
+        save_prerequisite(items[0].id, items[1].id)
+        available = get_available_items()
+        ok(available.length == 3) // One less item is available now
         
-        
+        // "Done items should not be available"
+        mark_item_done(items[3].id)
+        available = get_available_items()
+        ok(available.length == 2) // One less item is available now
     })
 })
 
@@ -79,8 +85,10 @@ test("create prerequisites", function(){
         var prerequisite2_id = save_item(tasks[2]).id
         var unrelated_id = save_item(tasks[3]).id
         
-        save_prerequisite(task_id, prerequisite1_id)
-        save_prerequisite(task_id, prerequisite2_id)
+        var r1 = save_prerequisite(task_id, prerequisite1_id)
+        var r2 = save_prerequisite(task_id, prerequisite2_id)
+        equals(r1.created, true)
+        equals(r2.created, true)
 
         var prerequisites = get_prerequisites(task_id)
         equals(prerequisites.length, 2)
@@ -94,17 +102,26 @@ test("create prerequisites", function(){
         
         
         // shouldn't be able to save a prerequisite of itself
-        save_prerequisite(unrelated_id, unrelated_id)
+        var r3 = save_prerequisite(unrelated_id, unrelated_id)
         equals(get_prerequisites(unrelated_id).length, 0)
         equals(get_postrequisites(unrelated_id).length, 0)
+        equals(r3.created, false)
         
         // should be able to remove prerequisites
         remove_prerequisite(task_id, prerequisite2_id)
         var new_prerequisites = get_prerequisites(task_id)
-        console.debug(new_prerequisites)
         equals(new_prerequisites.length, 1)
         equals(new_prerequisites[0].id, prerequisite1_id)
     })
 })
 
+test("get item details", function(){
+    with_standard_database(function(){
+        var id = save_item("Eat a banana").id
+        var details = get_item_details(id)
+        equals(details.text, "Eat a banana")
+        ok(details.created_date)
+        ok(details.id)
+    })
+})
 
