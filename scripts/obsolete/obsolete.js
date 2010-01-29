@@ -33,7 +33,7 @@ function test_generate_stems(){
 
 function query_one_column(database, query, params){
     var list = []
-    dbh.dict_cursor(query, params, function(row){
+    db2.dict_cursor(query, params, function(row){
         list.push(_.values(row)[0])
     })
     return list    
@@ -42,7 +42,7 @@ function query_one_column(database, query, params){
 
 function query_one_dict(database, query, params){
     var result
-    dbh.dict_cursor(query, params, function(row){
+    db2.dict_cursor(query, params, function(row){
         result = row
     })
     return result
@@ -50,7 +50,7 @@ function query_one_dict(database, query, params){
 
 function query_one_item(database, query, params){
     var result
-    dbh.dict_cursor(query, params, function(row){
+    db2.dict_cursor(query, params, function(row){
         result = _.values(row)[0]
     })
     return result
@@ -59,7 +59,7 @@ function query_one_item(database, query, params){
 
 function query_list(database, query, params){
     var list = []
-    dbh.dict_cursor(query, params, function(row){
+    db2.dict_cursor(query, params, function(row){
         list.push(row)
     })
     return list

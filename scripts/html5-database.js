@@ -1,3 +1,8 @@
+function supports_html5_databases(){
+    return window.openDatabase
+}
+
+
 var setup_database = function(name){
     db = openDatabase(name, "1.0", "Todo List", 200000, function(db){
         db.changeVersion('', "1.0", function(tx){

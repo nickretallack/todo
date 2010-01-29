@@ -1,8 +1,8 @@
-test("set up database", function(){
-    // shouldn't throw any errors or attempt to define the database twice
-    setup_database('test-db2')
-    equals('1.0', db.version)
-})
+// test("set up database", function(){
+//     // shouldn't throw any errors or attempt to define the database twice
+//     setup_database('test-db2')
+//     equals('1.0', db.version)
+// })
 
 
 
@@ -35,8 +35,8 @@ test("set up database", function(){
 //     db.close()
 //     setup_database('test-db')
 // 
-//     var schema_version = dbh.schema_version()
-//     assertEquals(schema_version, dbh.current_schema_version)
+//     var schema_version = db2.schema_version()
+//     assertEquals(schema_version, db2.current_schema_version)
 // 
 //     db.remove()
 // }
@@ -74,30 +74,30 @@ test("set up database", function(){
 //     })
 // }
 // 
-// function test_dbh_helpers(){
+// function test_db2_helpers(){
 //     with_new_database(function(){
 //         var query = 'select * from example'
 //         var data = [{text:'one', number:1}, {text:'two', number:2}, {text:'three', number:3}]
 // 
 //         db.execute('create table example (text text, number number)')
-//         _.map(data, function(item){ dbh.insert('example', item) })
+//         _.map(data, function(item){ db2.insert('example', item) })
 // 
 //         var index = 0
-//         dbh.cursor(query, [], function(row){
+//         db2.cursor(query, [], function(row){
 //             assertEqualsJSON(rs.dict(row), data[index])
 //             index += 1
 //         })
 // 
 //         index = 0
-//         dbh.dict_cursor(query, [], function(row){
+//         db2.dict_cursor(query, [], function(row){
 //             assertEqualsJSON(row, data[index])
 //             index += 1
 //         })
 //         
-//         assertEqualsJSON(dbh.dicts(query, []), data)
-//         assertEqualsJSON(dbh.first(query, []), data[0])
-//         assertEqualsJSON(dbh.single(query, []), data[0].text)
-//         assertEqualsJSON(dbh.singles(query, []), _.map(data, function(row){return row.text}))
+//         assertEqualsJSON(db2.dicts(query, []), data)
+//         assertEqualsJSON(db2.first(query, []), data[0])
+//         assertEqualsJSON(db2.single(query, []), data[0].text)
+//         assertEqualsJSON(db2.singles(query, []), _.map(data, function(row){return row.text}))
 //     })
 // }
 // 
@@ -105,7 +105,7 @@ test("set up database", function(){
 //     try {
 //         var inputs = ['first', 'second'] //, 'first second third', 'first third fourth']
 //         setup_database('standard-db')
-//         _.map(inputs, function(item){ console.debug(item); dbh.insert('item', {text:item})} )
+//         _.map(inputs, function(item){ console.debug(item); db2.insert('item', {text:item})} )
 //         // $(inputs).each(function(){
 //         //     db.execute('insert into item (text) values (?)', [this])
 //         // })

@@ -2,9 +2,17 @@
 <html><head><title>Tests</title>
     <!-- Dependencies (and Credits) -->
     <script type="text/javascript" src="lib/jquery.js"></script>            <!-- http://jquery.com/ -->
+    <script type="text/javascript" src="lib/underscore.js"></script>
+
+    <script type="text/javascript" src="lib/gears/gears_init.js"></script>
+    <script type="text/javascript" src="lib/gears/gears_ext.js"></script> <!-- http://code.google.com/p/gears/issues/detail?id=111 -->
+    
+    <script type="text/javascript" src="lib/Math.uuid.js"></script>         <!-- http://www.broofa.com/2008/09/javascript-uuid-function/ -->
+    <script type="text/javascript" src="lib/date.js"></script>              <!-- http://www.datejs.com/ -->
     
     <!-- Components (by Me) -->    
-    <script type="text/javascript" src="scripts/html5-database.js"></script>
+    <script type="text/javascript" src="scripts/misc.js"></script>
+    <script type="text/javascript" src="scripts/gears-database.js"></script>
 
     <!-- QUnit Tests -->
     <script type="text/javascript" src="lib/qunit/qunit.js"></script>
@@ -17,6 +25,6 @@
     <ol id="qunit-tests"></ol>
     
     
-    <script type="text/javascript" src="tests/database_tests.js"></script>
-    <script type="text/javascript" src="scripts/persistence.js"></script>
+    <script type="text/javascript" src="tests/gears-database-tests.js"></script>
+    <!-- // <script type="text/javascript" src="scripts/persistence.js"></script> -->
 </body></html>

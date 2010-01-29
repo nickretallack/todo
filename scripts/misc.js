@@ -15,3 +15,38 @@ String.prototype.words = function(){
 String.prototype.trim = function(){
     return this.replace(/^\s\s*/, '').replace(/\s\s*$/, '')    
 }
+
+function consume_value(input){
+    var text = input.val()
+    input.val('')
+    return text
+}
+
+function compare_by_value(left, right){
+    return right.value - left.value
+}
+
+// TODO: add these to prototype?
+function key_value_swap(dict){
+  var result = {}
+  for (var key in dict){
+    result[dict[key]] = key
+  }
+  return result
+}
+
+function list_to_set(list){
+  var set = {}
+  $(list).each(function(){
+    set[this] = true
+  })
+  return set
+}
+
+function set_to_list(set){
+  var list = []
+  for (var item in set){
+    list.push(item)
+  }
+  return list
+}
