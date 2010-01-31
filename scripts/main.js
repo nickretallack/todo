@@ -2,81 +2,62 @@
 var current_database = 'todos'
 var max_autocomplete_results = 10
 var focused_item_id
-var available_mode = false
+var mode = "available"
+
+var filters = {
+    available:{display:"Available", fetch:get_available_items},
+    all:{display:"All", fetch:get_items},
+    unfinished:{display:"Unfinished", fetch:get_unfinished_items},
+    finished:{display:"Finished", fetch:get_finished_items}}
 
 function setup_stuff(){
     setup_database(current_database)
     make_templated_elements()
     make_event_handlers()
-    show_available_items()
+    $('#filter #'+mode).click() // Calls refresh_lists eventually
 }
 
+function refresh_lists(){
+    refresh_main_list()
+    
+    var before = get_prerequisites(focused_item_id)
+    var after = get_postrequisites(focused_item_id)
+    $('#before-list').html(tmpl('item_list_template', {items:before}))
+    $('#after-list').html(tmpl('item_list_template', {items:after}))
+}
 
-
+function refresh_main_list(){
+    var items = filters[mode].fetch()
+    $('#main-list').html(tmpl('item_list_template', {items:items}))
+}
 
 function make_event_handlers(){
     $('.focus').live('click', function(){
         var item = $(this).parent('li')
         var id = item.attr('data-id')
         focus_item(id)
-    })    
-
-    //////////////////////////////////////////////////
-    // Reduce Repetition
-    $('#main-input').keydown(function(event){
-        if (event.which == keys.enter) {
-            entered_item($(this))
-        }
-
-        auto_search($(this))
     })
 
-
-    $('#before-input').live('keydown', function(event){
-        if (event.which == keys.enter) {
-            before_enter($(this))
-        }
-        auto_search($(this))
+    // My own half-assed auto-complete, since I couldn't get jquery autocomplete to let me
+    // feed custom data to it.
+    var list_keydowns = {'main':entered_item, 'before':before_enter, 'after':after_enter}
+    _.each(list_keydowns, function(enter, name){
+        $('#'+name+'-input').live('keydown', function(event){ 
+            if (event.which == keys.enter) {
+                enter($(this))
+            }
+            auto_search($(this))
+        })
+        $('#'+name+' .autocomplete li').live('click', function(){
+            autocomplete_click($(this), enter)
+        })    
     })
 
-    $('#after-input').live('keydown', function(event){
-        if (event.which == keys.enter) {
-            after_enter($(this))
-        }
-        auto_search($(this))
+    // The ID on the filter radio button matches the keys in the filter mode table
+    $('#filter input').click(function(event){
+        mode = $(this).attr('id')
+        refresh_main_list()
     })
-
-
-    // TODO: reduce to a loop
-    $('#before .autocomplete li').live('click', function(){
-        autocomplete_click($(this), before_enter)
-    })
-
-    $('#main .autocomplete li').live('click', function(){
-        autocomplete_click($(this), entered_item)
-    })
-
-    $('#after .autocomplete li').live('click', function(){
-        autocomplete_click($(this), after_enter)
-    })
-
-
-    $('#filter #all').click(function(event){
-        show_all_items()
-    })
-
-    $('#filter #available').click(function(event){
-        show_available_items()
-    })
-
-    $('#filter #unfinished').click(function(event){
-        show_unfinished_items()
-    })
-
-    $('#filter #finished').click(function(event){
-        show_finished_items()
-    })
-
 
     ///////////////////////////////////////////////////
 
@@ -85,10 +66,7 @@ function make_event_handlers(){
         var item_id = item_node.attr('data-id')
         mark_item_done(item_id, "completed")
         focus_item(item_id)
-        
-        if (mode != 'finished') {
-            $('.list [data-id='+item_id+']').remove() // remove from all lists
-        }
+        refresh_lists()
     })
 
     $('.drop').live('click', function(){
@@ -96,10 +74,6 @@ function make_event_handlers(){
         var item_id = item_node.attr('data-id')
         mark_item_done(item_id, "dropped")
         focus_item(item_id)
-        
-        if (mode != 'finished') {
-            $('.list [data-id='+item_id+']').remove() // remove from all lists
-        }
     })
 
 
@@ -111,6 +85,8 @@ function make_event_handlers(){
 
 }
 
+
+
 function make_templated_elements(){
     $('#insert-main-list').html(tmpl('editable_list_template', 
         {name:"main", flavor_text:"I should...", items:[]}))    
@@ -119,11 +95,7 @@ function make_templated_elements(){
 
 
 
-// rename to something like item details
-// NOTE: text is included here just for convenience.  Of course this function would be better
-// if it didn't need that parameter, but I couldn't bring myself to dig it out a second time.
-// TODO: get rid of this parameter, and start using get_item_details to grab it instead
-// We'll need the extended details anyway
+// TODO: rename to something like item details
 function focus_item(id){
     focused_item_id = id
     var item_details = get_item_details(id)
@@ -136,44 +108,18 @@ function focus_item(id){
 }
 
 
-
-function show_all_items(){
-    mode = "all"
-    var items = get_items()
-    $('#main-list').html(tmpl('item_list_template', {items:items}))
-}
-
-function show_available_items(){
-    mode = "available"
-    var items = get_available_items()
-    $('#main-list').html(tmpl('item_list_template', {items:items}))
-}
-
-function show_unfinished_items(){
-    mode = "unfinished"
-    var items = get_unfinished_items()
-    $('#main-list').html(tmpl('item_list_template', {items:items}))    
-}
-
-function show_finished_items(){
-    mode = "finished"
-    var items = get_finished_items()
-    $('#main-list').html(tmpl('item_list_template', {items:items}))    
-}
-
-
 var keys = {enter:13, tab:9, up:38, down:40, left:37, right:39, del:8, space:32}
 var codes = key_value_swap(keys)
 
 
-
-function moveto(button, destination){
-    var item = $(button).parent('li')
-    $(destination).append(item)
-}
+// // May be used for "Today's Items" list.
+// function moveto(button, destination){
+//     var item = $(button).parent('li')
+//     $(destination).append(item)
+// }
 
 function add_to_list(list, text, id){
-    return list.prepend(tmpl("item_template", {text:text, id:id}));
+    return list.prepend(tmpl("item_template", {text:text, id:id}))
 }
 
 function auto_search(input){
@@ -192,19 +138,21 @@ function auto_search(input){
     },1)
 }
 
-function generic_enter(input, main_list, this_list){
-    var text = consume_value(input)
-    var result = save_item(text)
-    if (result.created){
-        add_to_list(main_list, text, result.item_id) // TODO: make 'list' the first argument of this function            
-    } else {
-        
-    }
-    
-    if (this_list) {
-        // console.debug("yeah")
-    }
-}
+
+// // An attempt at abstracting the 'enter' behavior for all three lists.
+// function generic_enter(input, main_list, this_list){
+//     var text = consume_value(input)
+//     var result = save_item(text)
+//     if (result.created){
+//         add_to_list(main_list, text, result.item_id) // TODO: make 'list' the first argument of this function            
+//     } else {
+//         
+//     }
+//     
+//     if (this_list) {
+//         // console.debug("yeah")
+//     }
+// }
 
 
 function entered_item(input){
@@ -212,12 +160,10 @@ function entered_item(input){
     var text = consume_value(input)
     
     var result = save_item(text)
-    var item_id = result.item_id
-    if (result.created){
-        add_to_list($('#main-list'), text, item_id)            
-    } else {
-        focus_item(item_id)
-    }
+    var item_id = result.id
+
+    refresh_lists()
+    focus_item(item_id)
 }
 
 function before_enter(input){
@@ -228,21 +174,7 @@ function before_enter(input){
     var before_item_id = result.id
     var added = save_prerequisite(focused_item_id, before_item_id).created
 
-    if (mode == 'available')
-        hide_from_list(focused_item_id)
-
-    // as a before_item, this can't possibly be hidden yet...
-    if (result.created)
-        add_to_list($('#main-list'), text, before_item_id)
-
-    if (added)
-        add_to_list($('#before-list'), text, before_item_id)
-    // TODO: special highlight effect in the else case
-}
-
-function hide_from_list(id){
-    var item = $("#main-list [data-id="+id+"]")
-    item.remove()
+    refresh_lists()
 }
 
 function after_enter(input){
@@ -252,21 +184,16 @@ function after_enter(input){
     var item_id = result.id
     var added = save_prerequisite(item_id, focused_item_id).created
 
-    if (result.created)
-        add_to_list($('#main-list'), text, item_id)
+    refresh_lists()
+}
 
-    // If this is always a post-requisite, there's no way it could show in available mode
-    if (mode == 'available')
-        hide_from_list(item_id)
-
-    if (added) {
-        add_to_list($('#after-list'), text, item_id)
-    }
-    // TODO: special highlight effect in the else case
+function hide_from_list(id){
+    var item = $("#main-list [data-id="+id+"]")
+    item.remove()
 }
 
 
-
+// TODO: this is a silly way to re-use code.  Hm.
 function autocomplete_click(item, enter){
     var text = item.text()
     var input = item.parents('.list').find('.input')
@@ -276,7 +203,4 @@ function autocomplete_click(item, enter){
     
     var autocomplete = item.parents('.autocomplete').html('')
 }
-
-
-// TRIVIAL
 

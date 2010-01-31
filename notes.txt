@@ -1,4 +1,7 @@
 - Todos
+    - Have completed items show up as such in the before / after lists
+
+
     - Make the main list reload whatever filtered view it has every time you add an item / relationship
         - in fact, do this for the sub-lists as well for simplicity.
 
