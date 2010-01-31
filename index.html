@@ -25,45 +25,64 @@
 $(function(){ setup_stuff() })
 </script>
 
+
+<!-- Template for major lists like "I should..." and "But first I should..." -->
 <script type="text/html" id="editable_list_template">
 <div class="list" id="<%= name %>">
 <h3><%= flavor_text %></h3>
 <input type="text" id="<%= name %>-input" class="input">
 <ul class="autocomplete"></ul>
-
 <ul id="<%= name %>-list">
     <%= tmpl('item_list_template', {items:items}) %>
 </ul>
 </div>
 </script>
 
+<!-- A list of todo items -->
 <script type="text/html" id="item_list_template">
 <% for ( var i = 0; i < items.length; i++ ) { %>
     <%= tmpl('item_template', items[i]) %>
 <% } %>
 </script>
 
+<!-- An individual todo item in the list -->
 <script type="text/html" id="item_template">
 <li data-id="<%= id %>">
     <input type="radio" name="focus" class="focus" id="item-<%= text %>">
     <label class="text" for="item-<%= text %>"><%= text %></label>
-    <!-- <button class="focus">Focus</button>
-    <button class="done">Done</button>
-    <button class="do">Do</button>
-    <button class="before">before</button>
-    <button class="after">after</button>-->
 </script>
 
+<!-- Details panel content, for when an item is focused -->
 <script type="text/html" id="item_details_template">
 <h2 data-id="<%= id %>" class="item"><%= text %>
     <button class="done">Done</button>
+    <button class="drop">Drop</button>
 </h2>
 <%= tmpl('editable_list_template', {name:"before", flavor_text:"But first I should...", items:before }) %>
 <%= tmpl('editable_list_template', {name:"after", flavor_text:"After that I can...", items:after }) %>
 </ul>
-
 </script>
 
+<!-- Details panel for a completed item -->
+<script type="text/html" id="item_completed_template">
+<h2 data-id="<%= id %>" class="item"><%= text %>
+    <button class="undone">Revive</button>
+</h2>
+
+<div id="before" class="list">
+<h3>What to do about the prerequisites?</h2>
+<ul> <%= tmpl('item_list_template', {items:before}) %> </ul>
+</div>
+
+<div id="after" class="list">
+<h3>"Hooray!  Now you can..."</h3>
+<ul> <%= tmpl('item_list_template', {items:after}) %> </ul>
+</div>
+</script>
+
+
+
+<!-- A standard list.  Used by autocomplete -->
 <script type="text/html" id="list_items_template">
 <% for (var i = 0; i < list.length; i++) { %>
     <li><%= list[i] %>
@@ -74,8 +93,8 @@ $(function(){ setup_stuff() })
 </head>
 <body>
     <div id="list_panel">
-        <ul id="focused"></ul>
 
+        <!-- TODO: make this a template too -->
         <ul id="filter">
             <label for="available"> <input name="filter" type="radio" id="available" checked>Available</label>
             <label for="unfinished"> <input name="filter" type="radio" id="unfinished">Unfinished</label>
@@ -84,12 +103,6 @@ $(function(){ setup_stuff() })
         </ul>
         
         <div id="insert-main-list"></div>
-
-        <!-- <h2>On Your Plate</h2>
-        <ul id="doing"></ul>
-
-        <h2>Done</h2>
-        <ul id="done"></ul> -->
     </div>
 
     <div id="details_panel"></div>

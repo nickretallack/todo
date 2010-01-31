@@ -1,3 +1,29 @@
+- Todos
+    - Make the main list reload whatever filtered view it has every time you add an item / relationship
+        - in fact, do this for the sub-lists as well for simplicity.
+
+    - consider making most database save methods use keyword arguments.  Item especially.
+        - or just introduce a save_item_details that does it, and returns a full item with its new id
+    - give mark_item_done a default second parameter of "completed"
+        
+
+    - Make radio buttons get selected properly
+        - should it react to the one you have selected, or change it for you?
+        - how should things get selected if they became visible again after changing prerequisites?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Always store time in the database as GMT.  Be sure to remember this when querying and displaying.
 This way, stuff can be dropped in from the server without thinking.  And I'll be familiar enough with the issue that I'm less likely to make a mistake when I eventually sync stuff over the web.
 

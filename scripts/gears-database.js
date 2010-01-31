@@ -108,9 +108,9 @@ function save_item(text){
     return {id:id, created:true}
 }
 
-function mark_item_done(id){
-    db.do('update item set done_date = date(?) where id = ?', 
-        [iso_date_now(), id])
+function mark_item_done(id, reason){
+    db.do('update item set done_date = date(?), done_reason = ? where id = ?', 
+        [iso_date_now(), reason, id])
 }
 
 function save_prerequisite(after_item_id, before_item_id){
@@ -162,11 +162,16 @@ function get_items(){
 }
 
 function get_available_items(){
+    // An item is available if it is not done, and has no unfinished prerequisites
+    // Other factors to incorporate: start date
+    // It doesn't matter if a completed task has prerequisites
     return db.selectAll("select item.id, item_text.text \
         from item join item_text on item.rowid = item_text.rowid \
-        left outer join prerequisite on prerequisite.after_item_id = item.id \
-        where prerequisite.before_item_id is null \
-        and done_date is null")
+        where item.done_date is null \
+        and 0 = (select count(*) from prerequisite join item as before_item \
+        on prerequisite.before_item_id = before_item.id \
+        where prerequisite.after_item_id = item.id \
+        and before_item.done_date is null)")
 }
 
 function get_unfinished_items(){

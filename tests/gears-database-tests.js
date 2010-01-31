@@ -125,3 +125,47 @@ test("get item details", function(){
     })
 })
 
+// check if a given value is in a list:
+_
+QUnit.equiv
+
+
+// function contains(list, item){
+//     return _.any(list, function(x){ return QUnit.equiv(x, item) })
+// }
+
+
+test("complete and drop items", function(){
+    with_standard_database(function(){
+        var id = save_item("Eat a banana").id
+        equals(get_available_items().length, 1)
+        contains(get_available_items(), {id:id, text:"Eat a banana"})
+        equals(get_unfinished_items().length, 1)
+        equals(get_finished_items().length, 0)
+
+        mark_item_done(id, "completed")
+        equals(get_available_items().length, 0)
+        equals(get_unfinished_items().length, 0)
+        equals(get_finished_items().length, 1)
+        contains(get_finished_items(), {id:id, text:"Eat a banana"})
+    })    
+})
+
+test("completed items should not act as blocking prerequisites", function(){
+    with_standard_database(function(){
+        var before = {text:"Do Before"}
+        var after = {text:"Do After"}
+        
+        before.id = save_item(before.text).id
+        after.id = save_item(after.text).id
+        
+        save_prerequisite(after.id, before.id)
+        same(get_available_items(), [before], "Only the prerequisite is visible")
+        
+        mark_item_done(before.id, "completed")
+        same(get_available_items(), [after], "With the completed item gone, its postrequisite is now visible")
+
+        
+        
+    })    
+})

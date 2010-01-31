@@ -83,14 +83,25 @@ function make_event_handlers(){
     $('.done').live('click', function(){
         var item_node = $(this).parents('.item')
         var item_id = item_node.attr('data-id')
-        mark_item_done(item_id)
+        mark_item_done(item_id, "completed")
+        focus_item(item_id)
+        
         if (mode != 'finished') {
             $('.list [data-id='+item_id+']').remove() // remove from all lists
         }
-        
-        // TODO: display congratulatory panel
-        
     })
+
+    $('.drop').live('click', function(){
+        var item_node = $(this).parents('.item')
+        var item_id = item_node.attr('data-id')
+        mark_item_done(item_id, "dropped")
+        focus_item(item_id)
+        
+        if (mode != 'finished') {
+            $('.list [data-id='+item_id+']').remove() // remove from all lists
+        }
+    })
+
 
     // // Use this later
     // $('.do').live('click', function(){
@@ -113,16 +124,15 @@ function make_templated_elements(){
 // if it didn't need that parameter, but I couldn't bring myself to dig it out a second time.
 // TODO: get rid of this parameter, and start using get_item_details to grab it instead
 // We'll need the extended details anyway
-function focus_item(id, text){
+function focus_item(id){
     focused_item_id = id
-    console.debug("WHAT")
     var item_details = get_item_details(id)
     var before = get_prerequisites(id)
     var after = get_postrequisites(id)
-    console.debug(item_details)
-    // console.debug(id, before, after)
-
-    $('#details_panel').html(tmpl("item_details_template", {id:id, text:item_details.text, before:before, after:after}))
+    
+    if (item_details.done_date) var template = "item_completed_template"
+    else var template = "item_details_template"
+    $('#details_panel').html(tmpl(template, {id:id, text:item_details.text, before:before, after:after}))
 }
 
 
@@ -166,11 +176,6 @@ function add_to_list(list, text, id){
     return list.prepend(tmpl("item_template", {text:text, id:id}));
 }
 
-// function now_GMT(){
-//     return Date.now().setTimezone("GMT")
-// }
-
-
 function auto_search(input){
     setTimeout(function(){
         // AUTOMATIC SEARCH
@@ -184,14 +189,6 @@ function auto_search(input){
         
         var autocomplete = input.parent().find('.autocomplete')
         autocomplete.html(tmpl("list_items_template", {list:search_results}))
-
-        //     
-        //     // output.append(tmpl("item_template", {text:this, id:0}));
-        // })
-        
-        // db2.dict_cursor('select text, rowid from item where item match ?',[text],function(row){
-        //     output.append(tmpl("item_template", {text:row.text, id:row.id}));
-        // })
     },1)
 }
 
@@ -219,7 +216,7 @@ function entered_item(input){
     if (result.created){
         add_to_list($('#main-list'), text, item_id)            
     } else {
-        focus_item(item_id, text)
+        focus_item(item_id)
     }
 }
 
