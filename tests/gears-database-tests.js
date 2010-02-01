@@ -40,7 +40,7 @@ test("get items", function(){
         var tasks = ["Eat a banana", "Go to school", "Buy a boat", "Fly to France"]
         _.map(tasks, save_item)
         
-        var items = get_items()
+        var items = get_all_items()
         var texts = _.map(items, function(item){return item.text})
         same(tasks, texts, "Should fetch all items")
         
@@ -124,16 +124,6 @@ test("get item details", function(){
         ok(details.id)
     })
 })
-
-// check if a given value is in a list:
-_
-QUnit.equiv
-
-
-// function contains(list, item){
-//     return _.any(list, function(x){ return QUnit.equiv(x, item) })
-// }
-
 
 test("complete and drop items", function(){
     with_standard_database(function(){

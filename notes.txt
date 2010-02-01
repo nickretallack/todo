@@ -1,73 +1,19 @@
-- Todos
-    - Have completed items show up as such in the before / after lists
-
-
-    - Make the main list reload whatever filtered view it has every time you add an item / relationship
-        - in fact, do this for the sub-lists as well for simplicity.
-
-    - consider making most database save methods use keyword arguments.  Item especially.
-        - or just introduce a save_item_details that does it, and returns a full item with its new id
-    - give mark_item_done a default second parameter of "completed"
-        
-
-    - Make radio buttons get selected properly
-        - should it react to the one you have selected, or change it for you?
-        - how should things get selected if they became visible again after changing prerequisites?
 
 
 
 
 
-
-
-
-
-
-
-
-
+- Notes:
 
 Always store time in the database as GMT.  Be sure to remember this when querying and displaying.
 This way, stuff can be dropped in from the server without thinking.  And I'll be familiar enough with the issue that I'm less likely to make a mistake when I eventually sync stuff over the web.
 
-Ok, here's the thing that's got me stressing lately:
-	- gears screws up when I try to debug it in safari
-		- then use firefox!  Duh!!!
-		- or work around the quoting issue by quoting manually, geez!   It's not a big deal
-	- gears doesn't support some of my browsers
-		- then downgrade them to versions it supports
-	- html5 database doesn't support full text search
-		- makes it kinda useless, yeah.  Guess I could search with %like% and then cull out the false positives.
-	- could do it all in memory
-		- serialize the state to localstorage constantly.  In fact, don't even bother to serialize, just set it if you can
-			- if it gets too slow, try journalling -- write new state changes as entries, then fold them up into a newly serialized package
-		- manual stemming is easy enough.  I've aready implemented it pretty much.
 
 
 
-- add laundry lists in the right panel when no events are focused
-    - add a 'close' button to focused event to unfocus it
-
-- make sure you can't enter duplicate tasks.  Search for the text first,
-    - and if it already exists, return it
 
 
-- full text search supports the *, which makes my stemming totally irrelevant.
-    - toss stemming column in the database
-    - keep function around for javascript implementation
-        - might just use autocomplete's implementation
 
-
-- Implement this with sqlite first for simplicity.
-    Maybe try to hack it without that later on
-
-- Would be really nice to have a proper map, instead of this jquery each
-    - perhaps I should look at closure, or underscore?
-
-    
-- Although it's a convention in CSS to use hyphens for spaces,
-this is not a valid identifier in JavaScript, so to be consistent, I will use
-underscores everywhere.  (Also, hyphens break John Resig's template system.)
 
 
 

@@ -113,6 +113,11 @@ function mark_item_done(id, reason){
         [iso_date_now(), reason, id])
 }
 
+function revive_item(id){
+    db.do('update item set done_date = null, done_reason = null where id = ?', [id])
+}
+
+
 function save_prerequisite(after_item_id, before_item_id){
     // Don't save any bad relationships
     // TODO: what if there are cycles?
@@ -132,7 +137,7 @@ function remove_prerequisite(after_item_id, before_item_id){
 
 
 function get_prerequisites(id){
-    return db.selectAll('select item.id, item_text.text \
+    return db.selectAll('select item.id, item_text.text, item.done_reason \
         from item join prerequisite on prerequisite.before_item_id = item.id \
         join item_text on item.rowid = item_text.rowid \
         where after_item_id = ?', [id])
@@ -143,7 +148,7 @@ function get_prerequisites(id){
 }
 
 function get_postrequisites(id){
-    return db.selectAll('select item.id, item_text.text \
+    return db.selectAll('select item.id, item_text.text, item.done_reason \
         from item join prerequisite on prerequisite.after_item_id = item.id \
         join item_text on item.rowid = item_text.rowid \
         where before_item_id = ?', [id])
@@ -156,8 +161,8 @@ function get_item_details(id){
 }
 
 // TODO: does this query work without the []?
-function get_items(){
-    return db.selectAll('select item.id, item_text.text \
+function get_all_items(){
+    return db.selectAll('select item.id, item_text.text, item.done_reason \
     from item join item_text on item.rowid = item_text.rowid')
 }
 
@@ -165,7 +170,7 @@ function get_available_items(){
     // An item is available if it is not done, and has no unfinished prerequisites
     // Other factors to incorporate: start date
     // It doesn't matter if a completed task has prerequisites
-    return db.selectAll("select item.id, item_text.text \
+    return db.selectAll("select item.id, item_text.text, item.done_reason \
         from item join item_text on item.rowid = item_text.rowid \
         where item.done_date is null \
         and 0 = (select count(*) from prerequisite join item as before_item \
@@ -175,13 +180,13 @@ function get_available_items(){
 }
 
 function get_unfinished_items(){
-    return db.selectAll('select item.id, item_text.text \
+    return db.selectAll('select item.id, item_text.text, item.done_reason \
     from item join item_text on item.rowid = item_text.rowid \
     where item.done_date is null')
 }
 
 function get_finished_items(){
-    return db.selectAll('select item.id, item_text.text \
+    return db.selectAll('select item.id, item_text.text, item.done_reason \
     from item join item_text on item.rowid = item_text.rowid \
     where item.done_date is not null')
 }

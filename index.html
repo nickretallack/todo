@@ -30,7 +30,11 @@ $(function(){ setup_stuff() })
 <script type="text/html" id="editable_list_template">
 <div class="list" id="<%= name %>">
 <h3><%= flavor_text %></h3>
+
+<div class="input_container">
 <input type="text" id="<%= name %>-input" class="input">
+</div>
+
 <ul class="autocomplete"></ul>
 <ul id="<%= name %>-list">
     <%= tmpl('item_list_template', {items:items}) %>
@@ -50,13 +54,14 @@ $(function(){ setup_stuff() })
 <li data-id="<%= id %>">
     <input type="radio" name="focus" class="focus" id="item-<%= text %>">
     <label class="text" for="item-<%= text %>"><%= text %></label>
+    <span class="done_reason <%= done_reason %>"><%= done_reason %></span>
 </script>
 
 <!-- Details panel content, for when an item is focused -->
 <script type="text/html" id="item_details_template">
-<h2 data-id="<%= id %>" class="item"><%= text %>
-    <button class="done">Done</button>
-    <button class="drop">Drop</button>
+<h2 data-id="<%= item.id %>" class="item"><%= item.text %>
+    <button id="done">Done</button>
+    <button id="drop">Drop</button>
 </h2>
 <%= tmpl('editable_list_template', {name:"before", flavor_text:"But first I should...", items:before }) %>
 <%= tmpl('editable_list_template', {name:"after", flavor_text:"After that I can...", items:after }) %>
@@ -65,8 +70,9 @@ $(function(){ setup_stuff() })
 
 <!-- Details panel for a completed item -->
 <script type="text/html" id="item_completed_template">
-<h2 data-id="<%= id %>" class="item"><%= text %>
-    <button class="undone">Revive</button>
+<h2 data-id="<%= item.id %>" class="item"><%= item.text %>
+    <button id="undone">Revive</button>
+    <span class="done_reason <%= item.done_reason %>"><%= item.done_reason %></span>
 </h2>
 
 <div id="before" class="list">

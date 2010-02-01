@@ -7,14 +7,87 @@ Features So Far:
     - Mark tasks as done, and keep a history of things you've done
 
 Next Steps:
-    - Mark task as dropped
+    - Database switching (call it 'scopes', like work, personal, etc)
+        - so I can keep my real todos in one database, and fiddle around with another
+        - export/import backups!
+    - add database constraints
+
     - Button to unmark a prerequisite
     - Back button / history in detail panel
     - Start testing UI features with watir
-    - Database switching (call it 'scopes', like work, personal, etc)
-        - so I can keep my real todos in one database, and fiddle around with another
     - Solve hard syncing problems
+
+    - Add UI for item details: dates, notes
     
+    
+    
+More things to do:
+    - edit todo text / note
+    	- should save automatically after some seconds / blur
+
+    - other relationships
+    	- alternatives
+    		- "Instead, I could..."
+    		- when you complete it, marks alternative tasks as "completed alternative"
+    	- bonus tasks
+    		- "While I'm at it, I should..."
+    		- automatically pulls in items at the same location
+
+    - consider making most database save methods use keyword arguments.  Item especially.
+        - or just introduce a save_item_details that does it, and returns a full item with its new id
+    - give mark_item_done a default second parameter of "completed"
+
+    - Make radio buttons get selected properly
+        - should it react to the one you have selected, or change it for you?
+        - how should things get selected if they became visible again after changing prerequisites?
+
+    - add laundry lists in the right panel when no events are focused
+        - add a 'close' button to focused event to unfocus it
+
+    - if something has a due date, its prerequisites should be promoted based on how soon that date is.  That is, the closer due date ones should sort higher.  In this way, prerequisites must inherit the due date of their post-requisites, but only in a soft way.  Perhaps use a cached field for this in a later schema revision.
+
+    - server sync should be high on my list.  for outliner too, which really needs some love
+
+    - add up/down vote buttons
+    	- only one vote per day, but you can change it.
+    	- shit, how should it know which way you voted when it reloads the page?  Needs to know last vote direction and date.
+    		- or maybe there are no downvotes
+
+    - mark as laundry list item
+    	- these should not show up in the main list
+    	- add a column to item?
+    	- these items can't really be completed forever.  They're more like habits to train yourself to do.
+    - hmm, what if you wanted it to define a group for all the todos you've recently entered?
+
+
+    - bulk add todos
+    	- post to server
+    	- paste in box, line by line
+
+    - another kind of filtering is time of day.  add this later
+
+    extra features:
+
+    - see 'neglected' item list - unfinished tasks that haven't been touched in a while
+    - implement profiles (work, personal, etc) by switching databases
+    - recognize urls like rmilk does, but include the domain with a ...
+    - somehow detect loops...
+    - after going through a filters step, you can save/update/merge it as a perspective
+    - pluggable storage backends again (gears, localStorage, cookies, memory)
+    - print out pretty todo lists
+    - make some tasks public so other people can vote on them
+    - put search in a background worker when it gets too slow
+    - more tests for everything
+    - segregate functions that make use of the dom from those that don't
+    - include a tree view
+    - add a "convince yourself" field
+    - write a function that recreates the table
+    - eventually make it compatible with 
+
+
+    - test in other browsers:
+    	- punch in the radio button in the main list when you click an autocomplete item
+
 
 
 Strategy for implementing synchronization:

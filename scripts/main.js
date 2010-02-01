@@ -6,9 +6,16 @@ var mode = "available"
 
 var filters = {
     available:{display:"Available", fetch:get_available_items},
-    all:{display:"All", fetch:get_items},
+    all:{display:"All", fetch:get_all_items},
     unfinished:{display:"Unfinished", fetch:get_unfinished_items},
     finished:{display:"Finished", fetch:get_finished_items}}
+
+var buttons = {
+    done:{display:"Done", mark:function(id){mark_item_done(id, 'completed')}},
+    drop:{display:"Drop", mark:function(id){mark_item_done(id, 'dropped')}},
+    undone:{display:"Revive", mark:function(id){revive_item(id)}}
+}
+
 
 function setup_stuff(){
     setup_database(current_database)
@@ -60,21 +67,27 @@ function make_event_handlers(){
     })
 
     ///////////////////////////////////////////////////
+    $('#' + _.keys(buttons).join(', #')).live('click', function(event){
+        var button = $(this)
+        var id = button.parents('.item').attr('data-id')
+        var action = button.attr('id')
+        
+        buttons[action].mark(id)
 
-    $('.done').live('click', function(){
-        var item_node = $(this).parents('.item')
-        var item_id = item_node.attr('data-id')
-        mark_item_done(item_id, "completed")
-        focus_item(item_id)
-        refresh_lists()
+        focus_item(id)
+        refresh_lists()        
     })
 
-    $('.drop').live('click', function(){
-        var item_node = $(this).parents('.item')
-        var item_id = item_node.attr('data-id')
-        mark_item_done(item_id, "dropped")
-        focus_item(item_id)
-    })
+    // $('.done').live('click', function(){ finish_item(this, 'completed') })
+    // $('.drop').live('click', function(){ finish_item(this, 'dropped') })
+    // $('.revive').live('click', function(){ unfinish_item(this) })
+
+    // $('.drop').live('click', function(){
+    //     var item_node = $(this).parents('.item')
+    //     var item_id = item_node.attr('data-id')
+    //     mark_item_done(item_id, "dropped")
+    //     focus_item(item_id)
+    // })
 
 
     // // Use this later
@@ -84,6 +97,15 @@ function make_event_handlers(){
 
 
 }
+
+function finish_item(button, reason){
+    var item_node = $(button).parents('.item')
+    var id = item_node.attr('data-id')
+    mark_item_done(id, "completed")
+    focus_item(id)
+    refresh_lists()
+}
+
 
 
 
@@ -98,13 +120,13 @@ function make_templated_elements(){
 // TODO: rename to something like item details
 function focus_item(id){
     focused_item_id = id
-    var item_details = get_item_details(id)
+    var item = get_item_details(id)
     var before = get_prerequisites(id)
     var after = get_postrequisites(id)
     
-    if (item_details.done_date) var template = "item_completed_template"
+    if (item.done_date) var template = "item_completed_template"
     else var template = "item_details_template"
-    $('#details_panel').html(tmpl(template, {id:id, text:item_details.text, before:before, after:after}))
+    $('#details_panel').html(tmpl(template, {item:item, before:before, after:after}))
 }
 
 
