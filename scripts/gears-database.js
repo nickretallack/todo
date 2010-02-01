@@ -13,7 +13,7 @@ var setup_database = function(name, reset){
     
     db.open(name);
 
-    db.do('create table if not exists schema_version (version integer)')
+    db.run('create table if not exists schema_version (version integer)')
     var version = db.get_version()
         
     // Makes use of fallthrough to get the database up to date
@@ -23,27 +23,27 @@ var setup_database = function(name, reset){
             // that are being edited by other users.
             // Row IDs will still be used for the purpose of synchronizing normal tables with their virtual
             // full-text-search-enabled counterparts.
-            db.do('create table item (id text, \
+            db.run('create table item (id text, \
                 created_date text, start_date text, due_date text, done_date text, done_reason text)')
-            db.do('create virtual table item_text using fts2(text, note)')
+            db.run('create virtual table item_text using fts2(text, note)')
             // done_reason should be one of (manual, dropped, prerequisite, alternative)
             // More words if it was caused by a tree action. e.g. 
     
-            db.do('create table prerequisite (before_item_id text, after_item_id text)')
+            db.run('create table prerequisite (before_item_id text, after_item_id text)')
             // Prerequisites are like a directed graph, though both directions are used.
             
-            db.do('create table simultaneous (item_id text, related_item_id text)')
+            db.run('create table simultaneous (item_id text, related_item_id text)')
             // Simultaneous items are like an undirected graph.  I'm implementing them as directed edges for simplicity
             // Every time I create one edge, I should create its complement edge as well.  Same goes for deleting.
             
-            db.do('create table alternative (item_id text, group_id text)')
+            db.run('create table alternative (item_id text, group_id text)')
             // Alternative actions are like an abstract group.  If you associate with one, you associate with all of them.
                     
-            db.do('create virtual table equipment using fts2(name)')
-            db.do('create table equipment_needed (item_id text, equipment_id text)')
+            db.run('create virtual table equipment using fts2(name)')
+            db.run('create table equipment_needed (item_id text, equipment_id text)')
 
             db.set_version(1)
-            // db.do('insert into schema_version (version) values (1)')
+            // db.run('insert into schema_version (version) values (1)')
         case 1:
             // Votes may be included in a later version of the schema
             // Vote date is included so we can disallow voting again until some time has passed since the last vote
@@ -102,19 +102,19 @@ function save_item(text){
     db.transaction(function(db){
         // Follows the virtual table synchronization pattern explained here:
         // http://code.google.com/apis/gears/api_database.html
-        db.do("insert into item (id, created_date) values (?, date(?))", [id, date])
-        db.do('insert into item_text (rowid, text) values (last_insert_rowid(), ?)', [text]);
+        db.run("insert into item (id, created_date) values (?, date(?))", [id, date])
+        db.run('insert into item_text (rowid, text) values (last_insert_rowid(), ?)', [text]);
     })
     return {id:id, created:true}
 }
 
 function mark_item_done(id, reason){
-    db.do('update item set done_date = date(?), done_reason = ? where id = ?', 
+    db.run('update item set done_date = date(?), done_reason = ? where id = ?', 
         [iso_date_now(), reason, id])
 }
 
 function revive_item(id){
-    db.do('update item set done_date = null, done_reason = null where id = ?', [id])
+    db.run('update item set done_date = null, done_reason = null where id = ?', [id])
 }
 
 
@@ -125,13 +125,13 @@ function save_prerequisite(after_item_id, before_item_id){
     if (!after_item_id || !before_item_id) return {created:false}
     if (db.selectSingle('select count(*) from prerequisite where after_item_id = ? and before_item_id = ?',
         [after_item_id, before_item_id])) return {created:false}
-    db.do('insert into prerequisite (after_item_id, before_item_id) values (?,?)', 
+    db.run('insert into prerequisite (after_item_id, before_item_id) values (?,?)', 
         [after_item_id, before_item_id])
     return {created:true}
 }
 
 function remove_prerequisite(after_item_id, before_item_id){
-    db.do('delete from prerequisite where after_item_id = ? and before_item_id = ?',
+    db.run('delete from prerequisite where after_item_id = ? and before_item_id = ?',
         [after_item_id, before_item_id])
 }
 
@@ -220,7 +220,7 @@ function import_data(string_data){
         _.each(data.items, function(item){
             var item_details = filter_fields(item, item_text_keys, false)
             db.insert('item', item_details)
-            db.do('insert into item_text (rowid, text, note) values (last_insert_rowid(), ?, ?)', [item.text, item.note]);
+            db.run('insert into item_text (rowid, text, note) values (last_insert_rowid(), ?, ?)', [item.text, item.note]);
         })
 
         // insert prerequisites
