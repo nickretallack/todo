@@ -59,6 +59,7 @@ $(function(){ setup_stuff() })
 
 <!-- Details panel content, for when an item is focused -->
 <script type="text/html" id="item_details_template">
+<a id="close_details">x</a>
 <h2 data-id="<%= item.id %>" class="item"><%= item.text %>
     <button id="done">Done</button>
     <button id="drop">Drop</button>
@@ -99,6 +100,15 @@ $(function(){ setup_stuff() })
 </head>
 <body>
     <div id="list_panel">
+
+        <div id="import-export">
+            <a>import&hArr;export</a>
+            <form>
+            <textarea></textarea>
+            <button id="export">Export</button>
+            <button id="import">Import</button>
+            </form>
+        </div>
 
         <!-- TODO: make this a template too -->
         <ul id="filter">

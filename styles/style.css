@@ -17,3 +17,11 @@ input[type=text] {font-size:inherit; font-family:inherit; width:100%;}
 .done_reason {float:right; font-size:12pt; font-weight:normal;}
 .done_reason.dropped {color:darkred;}
 .done_reason.completed {color:darkgreen;}
+
+#import-export a {font-size:.8em;}
+#import-export textarea {width:100%;}
+#import-export form {display:none;}
+
+a {color:blue; cursor:pointer;}
+
+#close_details {float:right;}

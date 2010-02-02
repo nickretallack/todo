@@ -50,3 +50,12 @@ function set_to_list(set){
   }
   return list
 }
+
+function filter_fields(obj, keys, want){
+    results = {}
+    _.each(obj, function(value, key, list) {
+        var includes = _.include(keys, key)
+        if ((want && includes) || (!want && !includes)) results[key] = value
+    });
+    return results
+}

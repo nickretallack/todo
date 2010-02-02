@@ -16,12 +16,16 @@ var buttons = {
     undone:{display:"Revive", mark:function(id){revive_item(id)}}
 }
 
-
 function setup_stuff(){
     setup_database(current_database)
     make_templated_elements()
     make_event_handlers()
     $('#filter #'+mode).click() // Calls refresh_lists eventually
+}
+
+function make_templated_elements(){
+    $('#insert-main-list').html(tmpl('editable_list_template', 
+        {name:"main", flavor_text:"I should...", items:[]}))    
 }
 
 function refresh_lists(){
@@ -38,6 +42,25 @@ function refresh_main_list(){
     $('#main-list').html(tmpl('item_list_template', {items:items}))
 }
 
+function handle_enter(input, handler) {
+    var text = consume_value(input)
+    var result = save_item(text)
+    handler(result.id)
+    refresh_lists()
+}
+
+function handle_enter_after(item_id) {
+    save_prerequisite(item_id, focused_item_id)
+}
+
+function handle_enter_before(item_id) {
+    save_prerequisite(focused_item_id, item_id)
+}
+
+function handle_enter_main(item_id) {
+    focus_item(item_id)
+}
+
 function make_event_handlers(){
     $('.focus').live('click', function(){
         var item = $(this).parent('li')
@@ -47,16 +70,16 @@ function make_event_handlers(){
 
     // My own half-assed auto-complete, since I couldn't get jquery autocomplete to let me
     // feed custom data to it.
-    var list_keydowns = {'main':entered_item, 'before':before_enter, 'after':after_enter}
-    _.each(list_keydowns, function(enter, name){
+    var list_keydowns = {'main':handle_enter_main, 'before':handle_enter_before, 'after':handle_enter_after}
+    _.each(list_keydowns, function(handler, name){
         $('#'+name+'-input').live('keydown', function(event){ 
             if (event.which == keys.enter) {
-                enter($(this))
+                handle_enter($(this), handler)
             }
             auto_search($(this))
         })
         $('#'+name+' .autocomplete li').live('click', function(){
-            autocomplete_click($(this), enter)
+            autocomplete_click($(this), function(){ handle_enter($(this), handler) })
         })    
     })
 
@@ -66,7 +89,7 @@ function make_event_handlers(){
         refresh_main_list()
     })
 
-    ///////////////////////////////////////////////////
+    // Buttons from the table above.  Drop, Done, Revive
     $('#' + _.keys(buttons).join(', #')).live('click', function(event){
         var button = $(this)
         var id = button.parents('.item').attr('data-id')
@@ -77,25 +100,29 @@ function make_event_handlers(){
         focus_item(id)
         refresh_lists()        
     })
+    
+    $('#import-export a').click(function(event){
+        $('#import-export form').toggle()
+    })
+    $('#export').click(function(event){
+        event.preventDefault()
+        $('#import-export textarea').val( export_data() )
+    })
+    $('#import').click(function(event){
+        event.preventDefault()
+        close_details()
+        db.remove()
+        setup_database(current_database)
+        var data = $('#import-export textarea').val()
+        import_data(data)
+        refresh_lists()
+    })
+    
+    $('#close_details').live('click', close_details)
+}
 
-    // $('.done').live('click', function(){ finish_item(this, 'completed') })
-    // $('.drop').live('click', function(){ finish_item(this, 'dropped') })
-    // $('.revive').live('click', function(){ unfinish_item(this) })
-
-    // $('.drop').live('click', function(){
-    //     var item_node = $(this).parents('.item')
-    //     var item_id = item_node.attr('data-id')
-    //     mark_item_done(item_id, "dropped")
-    //     focus_item(item_id)
-    // })
-
-
-    // // Use this later
-    // $('.do').live('click', function(){
-    //     moveto(this, '#doing')
-    // })
-
-
+function close_details(){
+    $('#details_panel').empty()
 }
 
 function finish_item(button, reason){
@@ -105,16 +132,6 @@ function finish_item(button, reason){
     focus_item(id)
     refresh_lists()
 }
-
-
-
-
-function make_templated_elements(){
-    $('#insert-main-list').html(tmpl('editable_list_template', 
-        {name:"main", flavor_text:"I should...", items:[]}))    
-}
-
-
 
 
 // TODO: rename to something like item details
@@ -128,17 +145,6 @@ function focus_item(id){
     else var template = "item_details_template"
     $('#details_panel').html(tmpl(template, {item:item, before:before, after:after}))
 }
-
-
-var keys = {enter:13, tab:9, up:38, down:40, left:37, right:39, del:8, space:32}
-var codes = key_value_swap(keys)
-
-
-// // May be used for "Today's Items" list.
-// function moveto(button, destination){
-//     var item = $(button).parent('li')
-//     $(destination).append(item)
-// }
 
 function add_to_list(list, text, id){
     return list.prepend(tmpl("item_template", {text:text, id:id}))
@@ -160,61 +166,6 @@ function auto_search(input){
     },1)
 }
 
-
-// // An attempt at abstracting the 'enter' behavior for all three lists.
-// function generic_enter(input, main_list, this_list){
-//     var text = consume_value(input)
-//     var result = save_item(text)
-//     if (result.created){
-//         add_to_list(main_list, text, result.item_id) // TODO: make 'list' the first argument of this function            
-//     } else {
-//         
-//     }
-//     
-//     if (this_list) {
-//         // console.debug("yeah")
-//     }
-// }
-
-
-function entered_item(input){
-    // generic_enter(input, $('#main-list'))
-    var text = consume_value(input)
-    
-    var result = save_item(text)
-    var item_id = result.id
-
-    refresh_lists()
-    focus_item(item_id)
-}
-
-function before_enter(input){
-    // TODO: input is never used, just the text.  Should make text the parameter instead
-    var text = consume_value(input)
-    
-    var result = save_item(text)
-    var before_item_id = result.id
-    var added = save_prerequisite(focused_item_id, before_item_id).created
-
-    refresh_lists()
-}
-
-function after_enter(input){
-    var text = consume_value(input)
-    
-    var result = save_item(text)
-    var item_id = result.id
-    var added = save_prerequisite(item_id, focused_item_id).created
-
-    refresh_lists()
-}
-
-function hide_from_list(id){
-    var item = $("#main-list [data-id="+id+"]")
-    item.remove()
-}
-
-
 // TODO: this is a silly way to re-use code.  Hm.
 function autocomplete_click(item, enter){
     var text = item.text()
@@ -223,6 +174,6 @@ function autocomplete_click(item, enter){
     input.focus()
     enter(input)
     
-    var autocomplete = item.parents('.autocomplete').html('')
+    item.parents('.autocomplete').empty()
 }
 

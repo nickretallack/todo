@@ -5,12 +5,7 @@ var db = google.gears.factory.create('beta.database', '1.0ext');
 // It wont exist if gears is not installed, or is too old.
 
 // Create the database or bring the schema up to date
-var setup_database = function(name, reset){
-    if (reset) {
-        db.open(name);
-        db.remove()
-    }
-    
+var setup_database = function(name){
     db.open(name);
 
     db.run('create table if not exists schema_version (version integer)')
@@ -201,14 +196,6 @@ function export_data(){
     return JSON.stringify(data)
 }
 
-function filter_fields(obj, keys, want){
-    results = {}
-    _.each(obj, function(value, key, list) {
-        var includes = _.include(keys, key)
-        if ((want && includes) || (!want && !includes)) results[key] = value
-    });
-    return results
-}
 
 
 function import_data(string_data){

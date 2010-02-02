@@ -1,6 +1,6 @@
 var tasks = ["Eat a banana", "Go to school", "Buy a boat", "Fly to france"]
 
-function with_standard_database(callback){
+function with_db(callback){
     try {
         setup_database('test-full')
         callback()
@@ -21,7 +21,7 @@ test("set up database", function(){
 
 
 test("save items with unique ids, no duplicates", 5, function(){
-    with_standard_database(function(){
+    with_db(function(){
         var first_result = save_item(tasks[0])
         equals(first_result.created, true)
         
@@ -36,7 +36,7 @@ test("save items with unique ids, no duplicates", 5, function(){
 })
 
 test("get items", function(){
-    with_standard_database(function(){
+    with_db(function(){
         var tasks = ["Eat a banana", "Go to school", "Buy a boat", "Fly to France"]
         _.map(tasks, save_item)
         
@@ -60,7 +60,7 @@ test("get items", function(){
 
 
 test("search for words", function(){
-    with_standard_database(function(){
+    with_db(function(){
         var tasks = ["Eat a banana", "Go to school", "Buy a boat", "Fly to France"]
         _.map(tasks, save_item)
         
@@ -79,7 +79,7 @@ test("search for words", function(){
 
 
 test("create prerequisites", function(){
-    with_standard_database(function(){
+    with_db(function(){
         var task_id = save_item(tasks[0]).id
         var prerequisite1_id = save_item(tasks[1]).id
         var prerequisite2_id = save_item(tasks[2]).id
@@ -116,7 +116,7 @@ test("create prerequisites", function(){
 })
 
 test("get item details", function(){
-    with_standard_database(function(){
+    with_db(function(){
         var id = save_item("Eat a banana").id
         var details = get_item_details(id)
         equals(details.text, "Eat a banana")
@@ -126,10 +126,10 @@ test("get item details", function(){
 })
 
 test("complete and drop items", function(){
-    with_standard_database(function(){
+    with_db(function(){
         var id = save_item("Eat a banana").id
         equals(get_available_items().length, 1)
-        contains(get_available_items(), {id:id, text:"Eat a banana"})
+        contains( _.pluck(get_available_items(), 'text'), "Eat a banana")
         equals(get_unfinished_items().length, 1)
         equals(get_finished_items().length, 0)
 
@@ -137,12 +137,12 @@ test("complete and drop items", function(){
         equals(get_available_items().length, 0)
         equals(get_unfinished_items().length, 0)
         equals(get_finished_items().length, 1)
-        contains(get_finished_items(), {id:id, text:"Eat a banana"})
+        contains( _.pluck(get_finished_items(), 'text'), "Eat a banana")
     })    
 })
 
 test("completed items should not act as blocking prerequisites", function(){
-    with_standard_database(function(){
+    with_db(function(){
         var before = {text:"Do Before"}
         var after = {text:"Do After"}
         
@@ -150,12 +150,39 @@ test("completed items should not act as blocking prerequisites", function(){
         after.id = save_item(after.text).id
         
         save_prerequisite(after.id, before.id)
-        same(get_available_items(), [before], "Only the prerequisite is visible")
+        same( _.pluck(get_available_items(), 'text'), [before.text], "Only the prerequisite is visible")
         
         mark_item_done(before.id, "completed")
-        same(get_available_items(), [after], "With the completed item gone, its postrequisite is now visible")
-
-        
-        
+        same( _.pluck(get_available_items(), 'text'), [after.text], "With the completed item gone, its postrequisite is now visible")
     })    
+})
+
+test("export and import data without changing it", function(){
+    with_db(function(){
+        // create arbitrary data
+        var tasks = ["Eat a banana", "Go to school", "Buy a boat", "Fly to france"]
+        var ids = _.map(tasks, function(text){ return save_item(text).id })
+        save_prerequisite(ids[0], ids[1])
+        save_prerequisite(ids[1], ids[2])
+        save_prerequisite(ids[0], ids[3])
+        
+        var items = get_all_items()
+        var available_items = get_available_items()
+        // equals( get_all_items().length, 4 )
+
+        // export it
+        var data = export_data()
+        
+        db.remove()
+        setup_database('other-database')
+
+        same( get_all_items(), [] )
+        same( get_available_items(), [])
+
+        import_data(data)
+        
+        same( get_all_items(), items )
+        same( get_available_items(), available_items)
+
+    })
 })
