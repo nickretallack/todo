@@ -1,6 +1,6 @@
 body {font-family:helvetica, arial;}
 #list_panel, #details_panel {display:inline-block; width:30%; margin-right:3%; vertical-align:top;}
-.list {margin:20px 0;}
+/*.list {margin:20px 0;}*/
 
 /* Counteract the border/padding on my width:100% input, since it can't act as a proper block element */
 .input_container {margin-right:5px;} 
@@ -9,10 +9,12 @@ body {font-family:helvetica, arial;}
 li {list-style:none;}
 ul {margin:0; padding:0;}
 h1,h2,h3 { margin:0;}
-h3 {color:#aaa;}
+h3, th, p {color:#aaa;}
 h2 button {display:inline-block; vertical-align:20%;} 
-input[type=text] {font-size:inherit; font-family:inherit; width:100%;}
+input[type=text], textarea {font-size:inherit; font-family:inherit; width:100%; display:block;}
 
+h3, table {margin-top:1em;}
+p {margin:0;}
 
 .done_reason {float:right; font-size:12pt; font-weight:normal;}
 .done_reason.dropped {color:darkred;}
@@ -25,3 +27,10 @@ input[type=text] {font-size:inherit; font-family:inherit; width:100%;}
 a {color:blue; cursor:pointer;}
 
 #close_details {float:right;}
+
+
+.title {font-size:1.5em; border:0;}
+
+.autogrow-aid {position:absolute; left:-9999999px; top:0; white-space:pre-wrap; height:auto !important;}
+.notes {min-height:3em; max-height:12em; border:1px solid lightgray; padding:.5ex;}
+.title {height:1em; line-height:1em;}

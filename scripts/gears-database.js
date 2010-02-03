@@ -4,6 +4,8 @@ var db = google.gears.factory.create('beta.database', '1.0ext');
 // TODO: check if this function exists, instead of breaking the script
 // It wont exist if gears is not installed, or is too old.
 
+var item_text_keys = ['text', 'note'] // useful for reflection
+
 // Create the database or bring the schema up to date
 var setup_database = function(name){
     db.open(name);
@@ -14,32 +16,39 @@ var setup_database = function(name){
     // Makes use of fallthrough to get the database up to date
     switch(version){
         default:
-            // All IDs shall be guids.  Numeric IDs wont cut it when you have to merge multiple databases
-            // that are being edited by other users.
-            // Row IDs will still be used for the purpose of synchronizing normal tables with their virtual
-            // full-text-search-enabled counterparts.
-            db.run('create table item (id text, \
-                created_date text, start_date text, due_date text, done_date text, done_reason text)')
-            db.run('create virtual table item_text using fts2(text, note)')
-            // done_reason should be one of (manual, dropped, prerequisite, alternative)
-            // More words if it was caused by a tree action. e.g. 
-    
-            db.run('create table prerequisite (before_item_id text, after_item_id text)')
-            // Prerequisites are like a directed graph, though both directions are used.
-            
-            db.run('create table simultaneous (item_id text, related_item_id text)')
-            // Simultaneous items are like an undirected graph.  I'm implementing them as directed edges for simplicity
-            // Every time I create one edge, I should create its complement edge as well.  Same goes for deleting.
-            
-            db.run('create table alternative (item_id text, group_id text)')
-            // Alternative actions are like an abstract group.  If you associate with one, you associate with all of them.
-                    
-            db.run('create virtual table equipment using fts2(name)')
-            db.run('create table equipment_needed (item_id text, equipment_id text)')
+            db.transaction(function(db){
+                // All IDs shall be guids.  Numeric IDs wont cut it when you have to merge multiple databases
+                // that are being edited by other users.
+                // Row IDs will still be used for the purpose of synchronizing normal tables with their virtual
+                // full-text-search-enabled counterparts.
+                db.run('create table item (id text, \
+                    created_date text, start_date text, due_date text, done_date text, done_reason text)')
+                db.run('create virtual table item_text using fts2(text, note)')
+                // done_reason should be one of (manual, dropped, prerequisite, alternative)
+                // More words if it was caused by a tree action. e.g. 
 
-            db.set_version(1)
-            // db.run('insert into schema_version (version) values (1)')
+                db.run('create table prerequisite (before_item_id text, after_item_id text)')
+                // Prerequisites are like a directed graph, though both directions are used.
+
+                db.run('create table simultaneous (item_id text, related_item_id text)')
+                // Simultaneous items are like an undirected graph.  I'm implementing them as directed edges for simplicity
+                // Every time I create one edge, I should create its complement edge as well.  Same goes for deleting.
+
+                db.run('create table alternative (item_id text, group_id text)')
+                // Alternative actions are like an abstract group.  If you associate with one, you associate with all of them.
+
+                db.run('create virtual table equipment using fts2(name)')
+                db.run('create table equipment_needed (item_id text, equipment_id text)')
+
+                db.set_version(1)
+            })
         case 1:
+            db.transaction(function(db){
+                db.run('alter table item add column start_time text')
+                db.run('alter table item add column end_time text')
+                db.set_version(2)
+            })
+        case 2:
             // Votes may be included in a later version of the schema
             // Vote date is included so we can disallow voting again until some time has passed since the last vote
     }
@@ -101,6 +110,17 @@ function save_item(text){
         db.run('insert into item_text (rowid, text) values (last_insert_rowid(), ?)', [text]);
     })
     return {id:id, created:true}
+}
+
+function save_item_details(item){
+    // Item is synchronized with its full-text search virtual table via rowid
+    var rowid = db.selectSingle('select rowid from item where id = ?', [item.id])
+    var item_details = filter_fields(item, item_text_keys, false)
+    var item_texts = filter_fields(item, item_text_keys, true)
+    db.transaction(function(db){
+        db.run("update item set "+equals_pairs(item_details)+" where rowid=?", [rowid])
+        db.run('update item_text set '+equals_pairs(item_texts)+' where rowid=?', [rowid]);
+    })
 }
 
 function mark_item_done(id, reason){
@@ -197,10 +217,8 @@ function export_data(){
 }
 
 
-
 function import_data(string_data){
     var data = JSON.parse(string_data)
-    var item_text_keys = ['text', 'note']
     db.transaction(function(db){
         
         // insert items
@@ -217,3 +235,11 @@ function import_data(string_data){
     })
 }
 
+
+
+function equals_pairs(object){
+    // var quoted_values = db.quote(_.values(object)) // might optimize by quoting in bulk
+    return _.map(object, function(value, key){
+        return key + '=' + db.quote(value)
+    }).join(', ')
+}

@@ -59,3 +59,23 @@ function filter_fields(obj, keys, want){
     });
     return results
 }
+
+// Uses an invisible div to calculate the size of a textarea
+function grow_field(field, temp_field){
+  var field = $(field)
+  var temp_field = $(temp_field)
+  temp_field.width(field.width())
+  setTimeout(function(){
+    temp_field.text(field.val() + " MM")
+    field.css('height', temp_field.height())
+  })
+}
+
+function harvest_form(form_name){
+    var result = {}
+    _.each(document[form_name].elements, function(element){
+        result[element.name] = element.value
+    })
+    return result
+}
+

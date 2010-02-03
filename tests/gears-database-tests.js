@@ -13,7 +13,7 @@ test("set up database", function(){
     // shouldn't throw any errors or attempt to define the database twice
     try {
         setup_database('test')
-        equals('1.0', db.version)
+        equals('2.0', db.version)
     } finally {
         db.remove()
     }
@@ -184,5 +184,12 @@ test("export and import data without changing it", function(){
         same( get_all_items(), items )
         same( get_available_items(), available_items)
 
+    })
+})
+
+test("misc functions", function(){
+    with_db(function(){
+        var data = {key:'value', 'something':5}
+        same(equals_pairs(data), "key='value', something=5")
     })
 })

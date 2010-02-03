@@ -8,19 +8,26 @@ var filters = {
     available:{display:"Available", fetch:get_available_items},
     all:{display:"All", fetch:get_all_items},
     unfinished:{display:"Unfinished", fetch:get_unfinished_items},
-    finished:{display:"Finished", fetch:get_finished_items}}
+    finished:{display:"Finished", fetch:get_finished_items} }
 
 var buttons = {
     done:{display:"Done", mark:function(id){mark_item_done(id, 'completed')}},
     drop:{display:"Drop", mark:function(id){mark_item_done(id, 'dropped')}},
-    undone:{display:"Revive", mark:function(id){revive_item(id)}}
-}
+    undone:{display:"Revive", mark:function(id){revive_item(id)}} }
+
+var growing_fields = {
+    '.item.title':'#autogrow-item-title',
+    '.notes':'#autogrow-item-notes' }
+
 
 function setup_stuff(){
     setup_database(current_database)
     make_templated_elements()
     make_event_handlers()
     $('#filter #'+mode).click() // Calls refresh_lists eventually
+    
+    // Click on the first todo item
+    $('#main-list input[type=radio]:first').click()
 }
 
 function make_templated_elements(){
@@ -119,11 +126,20 @@ function make_event_handlers(){
     })
     
     $('#close_details').live('click', close_details)
+    
+    _.each(growing_fields, function(helper_selector, field_selector) {
+        $(field_selector).live('keydown', function(event){
+            grow_field(this, $(helper_selector))
+        })
+    })
+    
+    var countdown_to_autosave
+    $('[name=item_details] input, [name=item_details] textarea').live('keypress', function(event){
+        clearTimeout(countdown_to_autosave)
+        countdown_to_autosave = setTimeout(save_current_item_details, 500)
+    }).live('blur', save_current_item_details)
 }
 
-function close_details(){
-    $('#details_panel').empty()
-}
 
 function finish_item(button, reason){
     var item_node = $(button).parents('.item')
@@ -134,8 +150,22 @@ function finish_item(button, reason){
 }
 
 
+function save_current_item_details(){
+    // TODO: remember the current item's fields, and only save ones that have changed
+    var details = harvest_form('item_details')
+    save_item_details(details)
+    refresh_lists()
+}
+
+function close_details(){
+    save_current_item_details()
+    $('#details_panel').empty()
+}
+
 // TODO: rename to something like item details
 function focus_item(id){
+    if (focused_item_id) save_current_item_details()
+
     focused_item_id = id
     var item = get_item_details(id)
     var before = get_prerequisites(id)
@@ -176,4 +206,6 @@ function autocomplete_click(item, enter){
     
     item.parents('.autocomplete').empty()
 }
+
+
 

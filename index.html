@@ -1,6 +1,7 @@
 <!doctype html>
 <html>
 <head>
+<title>What's Stopping You?  Get Things Done!</title>
 <link rel="stylesheet" type="text/css" href="styles/style.css">
 
 <!-- Dependencies (and Credits) -->
@@ -57,13 +58,29 @@ $(function(){ setup_stuff() })
     <span class="done_reason <%= done_reason %>"><%= done_reason %></span>
 </script>
 
+<!-- TODO: Make this include the whole details panel div -->
 <!-- Details panel content, for when an item is focused -->
 <script type="text/html" id="item_details_template">
 <a id="close_details">x</a>
-<h2 data-id="<%= item.id %>" class="item"><%= item.text %>
-    <button id="done">Done</button>
-    <button id="drop">Drop</button>
-</h2>
+<button id="done">Done</button>
+<button id="drop">Drop</button>
+
+<form name="item_details">
+<textarea name="text" data-id="<%= item.id %>" class="item title" rows="1"><%= item.text %></textarea>
+<input type="hidden" name="id" value="<%= item.id %>">
+<table>
+    <tr><th>Doable  <th>From                        <th>To
+    <tr><td>Date    <td><input name="start_date"    value="<%= item.start_date %>">
+                    <td><input name="due_date"      value="<%= item.due_date %>">
+    <tr><td>Time    <td><input name="start_time"    value="<%= item.start_time %>">
+                    <td><input name="end_time"      value="<%= item.end_time %>">
+</table>
+<p>Note: Date fields may include a time.  Time fields are for the time of day.  Help me design a clearer UI.</p>
+
+<h3>Notes</h3>    
+<textarea name="note" class="notes"><%= item.note %></textarea>
+</form>
+
 <%= tmpl('editable_list_template', {name:"before", flavor_text:"But first I should...", items:before }) %>
 <%= tmpl('editable_list_template', {name:"after", flavor_text:"After that I can...", items:after }) %>
 </ul>
@@ -122,6 +139,9 @@ $(function(){ setup_stuff() })
     </div>
 
     <div id="details_panel"></div>
+
+    <div id="autogrow-item-title" class="item title autogrow-aid"></div>
+    <div id="autogrow-item-notes" class="notes autogrow-aid"></div>
 
 
 </body>
