@@ -8,12 +8,7 @@ Features So Far:
     - Back up your data in JSON format
 
 Next Steps:
-    - edit todo text / note
-        - port auto-expanding textarea from 
-    	- should save automatically after some seconds / blur
-    	- dates too
-    	- time of day
-        - make a single point for unloading the currently selected item, to be sure it is saved
+    
 
     - Back button / history in detail panel
     - Button to unmark a prerequisite

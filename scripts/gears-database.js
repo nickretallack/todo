@@ -89,9 +89,6 @@ function cull_stopwords(list){
     return list
 }
 
-function iso_date_now(){
-    return Date.now().toISOString()
-}
 
 function save_item(text){
     // find first.  No duplicates allowed
@@ -112,11 +109,56 @@ function save_item(text){
     return {id:id, created:true}
 }
 
+function iso_date_now(){
+    return parse_date('now')
+}
+
+function parse_date(string){
+    var date = Date.parse(string)
+    if (date) return date.toISOString()
+    else return null
+}
+
+function parse_time_utc(string){
+    var date = Date.parse(string)
+    if (date) {
+        function f(n) {
+            return n < 10 ? '0' + n : n;
+        }
+
+        return '' +
+            f(date.getUTCHours())     + ':' +
+            f(date.getUTCMinutes())   + ':' +
+            f(date.getUTCSeconds())   + 'Z';
+    } else return null
+}
+
+// On second thought, maybe we shouldn't use GMT time of days.  They don't make sense
+function parse_time(string){
+    var date = Date.parse(string)
+    if (date) {
+        function f(n) {
+            return n < 10 ? '0' + n : n;
+        }
+
+        return [f(date.getHours()), f(date.getMinutes()), f(date.getSeconds())].join(':');
+    } else return null
+}
+
+
 function save_item_details(item){
+    // Clean up the data.  Fix all dates and timesusing date.js
+    item.start_date = parse_date(item.start_date)
+    item.due_date   = parse_date(item.due_date)
+
+    item.start_time = parse_time(item.start_time)
+    item.end_time   = parse_time(item.end_time)
+
     // Item is synchronized with its full-text search virtual table via rowid
     var rowid = db.selectSingle('select rowid from item where id = ?', [item.id])
     var item_details = filter_fields(item, item_text_keys, false)
     var item_texts = filter_fields(item, item_text_keys, true)
+
     db.transaction(function(db){
         db.run("update item set "+equals_pairs(item_details)+" where rowid=?", [rowid])
         db.run('update item_text set '+equals_pairs(item_texts)+' where rowid=?', [rowid]);
@@ -191,7 +233,10 @@ function get_available_items(){
         and 0 = (select count(*) from prerequisite join item as before_item \
         on prerequisite.before_item_id = before_item.id \
         where prerequisite.after_item_id = item.id \
-        and before_item.done_date is null)")
+        and before_item.done_date is null) \
+        and (item.start_date < date('now') or item.start_date is null) \
+        and (item.start_time < time('now', 'localtime') or item.start_time is null) \
+        and (item.end_time   > time('now', 'localtime') or item.end_time is null)")
 }
 
 function get_unfinished_items(){

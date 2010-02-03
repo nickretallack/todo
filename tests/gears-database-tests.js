@@ -193,3 +193,51 @@ test("misc functions", function(){
         same(equals_pairs(data), "key='value', something=5")
     })
 })
+
+
+test("item details", function(){
+    with_db(function(){
+        var item = {text:"Go to the mall", note:"Shopping is fun!", start_time:"8am", end_time:"9pm", due_date:"June 21, 2010"}
+        item.id = save_item(item.text).id
+        save_item_details(item)
+        var saved_item = get_item_details(item.id)
+        same([saved_item.text, saved_item.note], [item.text, item.note])
+        same([saved_item.start_time, saved_item.end_time, saved_item.due_date, saved_item.start_date], 
+             ["08:00:00",           "21:00:00",         "2010-06-21T07:00:00.000Z",null])
+    })
+})
+
+test("Items should become unavailable based on times", function(){
+    var text = "Go to the mall"
+    with_db(function(){
+        // tomorrow's items should be invisible
+        var id = save_item(text).id
+        save_item_details({id:id, text:text, start_date:"tomorrow"})
+        same(get_available_items(), [])
+    })
+
+    with_db(function(){
+        // yesterday's items should be visible
+        var id = save_item(text).id
+        save_item_details({id:id, text:text, start_date:"yesterday"})
+        same(get_available_items().length, 1)
+    })
+        
+    with_db(function(){
+        var id = save_item(text).id
+        save_item_details({id:id, text:text, start_time:"t + 1h"})
+        same(get_available_items().length, 0)
+    })
+
+    with_db(function(){
+        var id = save_item(text).id
+        save_item_details({id:id, text:text, end_time:"t - 1h"})
+        same(get_available_items().length, 0)
+    })
+
+    with_db(function(){
+          var id = save_item(text).id
+          save_item_details({id:id, text:text, start_time:"t - 1h", end_time:"t + 1h"})
+          same(get_available_items().length, 1)
+    })
+})

@@ -2,6 +2,7 @@
 var current_database = 'todos'
 var max_autocomplete_results = 10
 var focused_item_id
+var focused_item_history = []
 var mode = "available"
 
 var filters = {
@@ -164,13 +165,13 @@ function close_details(){
 
 // TODO: rename to something like item details
 function focus_item(id){
-    if (focused_item_id) save_current_item_details()
+    if (focused_item_id) close_details()
 
     focused_item_id = id
+    focused_item_history.push(id)
     var item = get_item_details(id)
     var before = get_prerequisites(id)
     var after = get_postrequisites(id)
-    
     if (item.done_date) var template = "item_completed_template"
     else var template = "item_details_template"
     $('#details_panel').html(tmpl(template, {item:item, before:before, after:after}))
