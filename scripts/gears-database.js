@@ -66,7 +66,7 @@ function search_items(string){
     if (usable_words.length == 0) return []     // Don't bother searching for nothing
 
     var results = {}
-    _.each(words, function(word){
+    _.each(usable_words, function(word){
         var texts = db.selectColumn('select text from item_text where item_text match ?', [word])
         _.each(texts, function(text){
             if (results[text] == undefined)
@@ -91,9 +91,11 @@ function cull_stopwords(list){
 
 
 function save_item(text){
+    if (!text) return {id:null, created:false}
+
     // find first.  No duplicates allowed
     var id = db.selectColumn('select item.id from item join item_text \
-        on item.rowid = item_text.rowid where item_text.text match ?', [text])[0]
+        on item.rowid = item_text.rowid where item_text.text = ?', [text])[0]
     if (id) return {id:id, created:false}
 
     // Create a new one with a unique ID.

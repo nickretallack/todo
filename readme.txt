@@ -5,10 +5,14 @@ Features So Far:
     - Search-while-you-type avoids creating duplicate tasks
     - Mark tasks as prerequisites of each other to hide un-doable tasks
     - Mark tasks as done, and keep a history of things you've done
+    - Filter out tasks you can't do until a particular date, or at a particular time of day
     - Back up your data in JSON format
 
 Next Steps:
-    
+    - Time intervals should be able to span midnight.
+        - figure out a query for this.
+        
+    - start doing functional testing with selenium
 
     - Back button / history in detail panel
     - Button to unmark a prerequisite

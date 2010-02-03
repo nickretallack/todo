@@ -4,6 +4,14 @@ var max_autocomplete_results = 10
 var focused_item_id
 var focused_item_history = []
 var mode = "available"
+var wait_before_autosaving = 2000;
+
+if (typeof console == 'undefined') {
+    console = {debug:function(){}}
+}
+
+var keys = {enter:13, tab:9, up:38, down:40, left:37, right:39, del:8, space:32}
+var codes = key_value_swap(keys)
 
 var filters = {
     available:{display:"Available", fetch:get_available_items},
@@ -51,7 +59,8 @@ function refresh_main_list(){
 }
 
 function handle_enter(input, handler) {
-    var text = consume_value(input)
+    var text = consume_value(input).trim()
+    if (!text) return // don't bother entering empties
     var result = save_item(text)
     handler(result.id)
     refresh_lists()
@@ -66,6 +75,7 @@ function handle_enter_before(item_id) {
 }
 
 function handle_enter_main(item_id) {
+    console.debug("HIT IT", item_id)
     focus_item(item_id)
 }
 
@@ -81,13 +91,16 @@ function make_event_handlers(){
     var list_keydowns = {'main':handle_enter_main, 'before':handle_enter_before, 'after':handle_enter_after}
     _.each(list_keydowns, function(handler, name){
         $('#'+name+'-input').live('keydown', function(event){ 
+            var input = $(this)
             if (event.which == keys.enter) {
-                handle_enter($(this), handler)
+                handle_enter(input, handler)
             }
-            auto_search($(this))
+            auto_search(input)
         })
         $('#'+name+' .autocomplete li').live('click', function(){
-            autocomplete_click($(this), function(){ handle_enter($(this), handler) })
+            var li = $(this)
+            var input = li.parents('.list:first').find('input:first')
+            autocomplete_click(li, function(){ handle_enter(input, handler) })
         })    
     })
 
@@ -100,7 +113,8 @@ function make_event_handlers(){
     // Buttons from the table above.  Drop, Done, Revive
     $('#' + _.keys(buttons).join(', #')).live('click', function(event){
         var button = $(this)
-        var id = button.parents('.item').attr('data-id')
+        // var id = button.parents('.item').attr('data-id')
+        var id = focused_item_id
         var action = button.attr('id')
         
         buttons[action].mark(id)
@@ -128,16 +142,18 @@ function make_event_handlers(){
     
     $('#close_details').live('click', close_details)
     
+    // TextAreas that grow to fit your text
     _.each(growing_fields, function(helper_selector, field_selector) {
         $(field_selector).live('keydown', function(event){
             grow_field(this, $(helper_selector))
         })
     })
     
+    // Automatically Save Details
     var countdown_to_autosave
     $('[name=item_details] input, [name=item_details] textarea').live('keypress', function(event){
         clearTimeout(countdown_to_autosave)
-        countdown_to_autosave = setTimeout(save_current_item_details, 500)
+        countdown_to_autosave = setTimeout(save_current_item_details, wait_before_autosaving)
     }).live('blur', save_current_item_details)
 }
 
@@ -172,6 +188,8 @@ function focus_item(id){
     var item = get_item_details(id)
     var before = get_prerequisites(id)
     var after = get_postrequisites(id)
+
+    console.debug("focused", item, before, after)
     if (item.done_date) var template = "item_completed_template"
     else var template = "item_details_template"
     $('#details_panel').html(tmpl(template, {item:item, before:before, after:after}))
@@ -192,7 +210,7 @@ function auto_search(input){
 
         var search_results = search_items(text).slice(0,max_autocomplete_results)
         
-        var autocomplete = input.parent().find('.autocomplete')
+        var autocomplete = input.parents('.list:first').find('.autocomplete:first')
         autocomplete.html(tmpl("list_items_template", {list:search_results}))
     },1)
 }
@@ -200,10 +218,11 @@ function auto_search(input){
 // TODO: this is a silly way to re-use code.  Hm.
 function autocomplete_click(item, enter){
     var text = item.text()
-    var input = item.parents('.list').find('.input')
+    var input = item.parents('.list:first').find('.input:first')
     input.val(text)
+    console.debug(text, input.get(), "INPUT VAL:", input.val())
+    enter()
     input.focus()
-    enter(input)
     
     item.parents('.autocomplete').empty()
 }

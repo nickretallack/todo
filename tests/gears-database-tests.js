@@ -20,7 +20,7 @@ test("set up database", function(){
 })
 
 
-test("save items with unique ids, no duplicates", 5, function(){
+test("save items with unique ids, no duplicates", function(){
     with_db(function(){
         var first_result = save_item(tasks[0])
         equals(first_result.created, true)
@@ -32,6 +32,10 @@ test("save items with unique ids, no duplicates", 5, function(){
         var third_result = save_item(tasks[1])
         equals(third_result.created, true)
         ok(third_result.id != first_result.id)
+        
+        // no blank tasks
+        var blank_result = save_item('')
+        same(blank_result, {id:null, created:false})
     })
 })
 
