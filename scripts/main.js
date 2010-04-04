@@ -4,7 +4,7 @@ var max_autocomplete_results = 10
 var focused_item_id
 var focused_item_history = []
 var mode = "available"
-var wait_before_autosaving = 2000;
+var wait_before_autosaving = 500;
 
 if (typeof console == 'undefined') {
     console = {debug:function(){}}
@@ -75,7 +75,6 @@ function handle_enter_before(item_id) {
 }
 
 function handle_enter_main(item_id) {
-    console.debug("HIT IT", item_id)
     focus_item(item_id)
 }
 
@@ -189,7 +188,6 @@ function focus_item(id){
     var before = get_prerequisites(id)
     var after = get_postrequisites(id)
 
-    console.debug("focused", item, before, after)
     if (item.done_date) var template = "item_completed_template"
     else var template = "item_details_template"
     $('#details_panel').html(tmpl(template, {item:item, before:before, after:after}))
@@ -220,7 +218,6 @@ function autocomplete_click(item, enter){
     var text = item.text()
     var input = item.parents('.list:first').find('.input:first')
     input.val(text)
-    console.debug(text, input.get(), "INPUT VAL:", input.val())
     enter()
     input.focus()
     

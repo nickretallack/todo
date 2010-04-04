@@ -7,15 +7,14 @@
 <!-- Dependencies (and Credits) -->
 <script type="text/javascript" src="lib/jquery.js"></script>            <!-- http://jquery.com/ -->
 <script type="text/javascript" src="lib/underscore.js"></script>
+<script type="text/javascript" src="lib/resig-templates.js"></script>   <!-- http://ejohn.org/blog/javascript-micro-templating/ -->
+<script type="text/javascript" src="lib/diff_match_patch_uncompressed.js"></script>
+
+<script type="text/javascript" src="lib/Math.uuid.js"></script>         <!-- http://www.broofa.com/2008/09/javascript-uuid-function/ -->
+<script type="text/javascript" src="lib/json2.js"></script>             <!-- http://json.org/json2.js -->
 
 <script type="text/javascript" src="lib/gears/gears_init.js"></script>
 <script type="text/javascript" src="lib/gears/gears_ext.js"></script>   <!-- http://code.google.com/p/gears/issues/detail?id=111 -->
-
-<script type="text/javascript" src="lib/Math.uuid.js"></script>         <!-- http://www.broofa.com/2008/09/javascript-uuid-function/ -->
-<script type="text/javascript" src="lib/date.js"></script>              <!-- http://www.datejs.com/ -->
-
-<script type="text/javascript" src="lib/resig-templates.js"></script>   <!-- http://ejohn.org/blog/javascript-micro-templating/ -->
-<script type="text/javascript" src="lib/json2.js"></script>             <!-- http://json.org/json2.js -->
 
 <!-- Development version of date.js -->
 <script type='text/javascript' src='lib/datejs/globalization/en-US.js'></script>
@@ -27,8 +26,19 @@
 
 <!-- Components (by Me) -->    
 <script type="text/javascript" src="scripts/misc.js"></script>
-<script type="text/javascript" src="scripts/gears-database.js"></script>
+<script type="text/javascript" src="scripts/gears-database/setup.js"></script>
+<script type="text/javascript" src="scripts/gears-database/util.js"></script>
+<script type="text/javascript" src="scripts/gears-database/items.js"></script>
+<script type="text/javascript" src="scripts/gears-database/prerequisites.js"></script>
+<script type="text/javascript" src="scripts/gears-database/search.js"></script>
+<script type="text/javascript" src="scripts/gears-database/sync.js"></script>
+<script type="text/javascript" src="scripts/gears-database/simultaneous.js"></script>
+<script type="text/javascript" src="scripts/gears-database/alternative.js"></script>
+<script type="text/javascript" src="scripts/gears-database/filters.js"></script>
+<script type="text/javascript" src="scripts/gears-database/import.js"></script>
+
 <script type="text/javascript" src="scripts/main.js"></script>
+
 
 <script type="text/javascript">
 $(function(){ setup_stuff() })
@@ -73,7 +83,7 @@ $(function(){ setup_stuff() })
 <button id="done">Done</button>
 <button id="drop">Drop</button>
 
-<form name="item_details">
+<form name="item_details" class="input_container">
 <textarea name="text" data-id="<%= item.id %>" class="item title" rows="1"><%= item.text %></textarea>
 <input type="hidden" name="id" value="<%= item.id %>">
 <table>

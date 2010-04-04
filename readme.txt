@@ -4,17 +4,35 @@ Features So Far:
     - Add tasks to your todo list
     - Search-while-you-type avoids creating duplicate tasks
     - Mark tasks as prerequisites of each other to hide un-doable tasks
-    - Mark tasks as done, and keep a history of things you've done
     - Filter out tasks you can't do until a particular date, or at a particular time of day
+    - Mark tasks as done or dropped, and keep a diary
     - Back up your data in JSON format
 
+Features To Be:
+    - Edit your lists offline on any computer, and synchronize when you're online
+    - Upvote tasks every few hours to remind yourself just how much you wanted to do them
+    - Filter out tasks you can't do without specific equipment
+    - Filter out tasks you can't do within a radius of your current location
+    - Add tasks to laundry lists, so you can keep doing them until you know them by heart
+
+
+
 Next Steps:
-    - Time intervals should be able to span midnight.
-        - figure out a query for this.
-        
+    - NodeJS and Postgres
+        - authenticate users
+            - basic username+password will do
+            - no openid implementation is available.
+                - besides, openid is complicated.
+        - receive the messages and store them
+        - read user's messages after a given timestamp (or all messages if none given)
+
+    - inserting the value false comes out as 'false'.  Weird.
     - start doing functional testing with selenium
 
     - Back button / history in detail panel
+    - implement item ids as fragment identifiers you can jump between
+        - how do I catch the back browser event to a fragment id?
+        http://www.hunlock.com/blogs/Mastering_The_Back_Button_With_Javascript
     - Button to unmark a prerequisite
 
     - other relationships
@@ -26,8 +44,6 @@ Next Steps:
     		- automatically pulls in items at the same location
 
     - equipment
-
-    - server sync should be high on my list.  for outliner too, which really needs some love
 
     - add up/down vote buttons
     	- only one vote per day, but you can change it.
@@ -44,13 +60,17 @@ Next Steps:
     
     
 More things to do:
+    - Build a chatbot to post tasks to it
+        - after server sync is completed
+
+    - put in a time for it to trigger a reminder.
+        - default reminder X minutes before due date?
+
+    - this program could also make a great diary.  Make sure it's possible to edit notes once tasks are over, and then display the tasks and notes in chronological order.
+
     - consider making most database save methods use keyword arguments.  Item especially.
         - or just introduce a save_item_details that does it, and returns a full item with its new id
     - give mark_item_done a default second parameter of "completed"
-
-    - Make radio buttons get selected properly
-        - should it react to the one you have selected, or change it for you?
-        - how should things get selected if they became visible again after changing prerequisites?
 
     - add laundry lists in the right panel when no events are focused
         - add a 'close' button to focused event to unfocus it
@@ -85,6 +105,13 @@ More things to do:
 
     - put search in a background worker if it gets too slow
     - pluggable storage backends (gears, localStorage, cookies, memory)
+
+    - Make radio buttons get selected properly
+        - should it react to the one you have selected, or change it for you?
+        - how should things get selected if they became visible again after changing prerequisites?
+
+    - Consider using jsbundle
+        http://bitbucket.org/DeadWisdom/jsbundle/wiki/Home
 
 
 

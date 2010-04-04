@@ -13,7 +13,7 @@ test("set up database", function(){
     // shouldn't throw any errors or attempt to define the database twice
     try {
         setup_database('test')
-        equals('2.0', db.version)
+        ok(db.version)
     } finally {
         db.remove()
     }
@@ -42,23 +42,25 @@ test("save items with unique ids, no duplicates", function(){
 test("get items", function(){
     with_db(function(){
         var tasks = ["Eat a banana", "Go to school", "Buy a boat", "Fly to France"]
-        _.map(tasks, save_item)
+        _.map(tasks, function(text) {save_item(text)})
+
+        // console.debug(db.selectAll("select start_time, end_time from item where start_time is n"))
         
         var items = get_all_items()
-        var texts = _.map(items, function(item){return item.text})
+        var texts = _.pluck(items, 'text') //function(item){return item.text})
         same(tasks, texts, "Should fetch all items")
         
         var available_items = get_available_items()
         same(items, available_items, "Available and All should be the same with no prereqs enabled")
 
         save_prerequisite(items[0].id, items[1].id)
-        available = get_available_items()
-        ok(available.length == 3) // One less item is available now
+        available_items = get_available_items()
+        same(available_items.length, 3, "One less item is available now")
         
         // "Done items should not be available"
         mark_item_done(items[3].id)
-        available = get_available_items()
-        ok(available.length == 2) // One less item is available now
+        available_items = get_available_items()
+        same(available_items.length, 2, "Done items should not be available")
     })
 })
 
@@ -66,7 +68,7 @@ test("get items", function(){
 test("search for words", function(){
     with_db(function(){
         var tasks = ["Eat a banana", "Go to school", "Buy a boat", "Fly to France"]
-        _.map(tasks, save_item)
+        _.map(tasks, function(text) {save_item(text)})
         
         same(search_items(''), [], "Blank search finds nothing")
         same(search_items('a'), [], "Searching for stopwords should give you nothing")
@@ -191,12 +193,12 @@ test("export and import data without changing it", function(){
     })
 })
 
-test("misc functions", function(){
-    with_db(function(){
-        var data = {key:'value', 'something':5}
-        same(equals_pairs(data), "key='value', something=5")
-    })
-})
+// test("misc functions", function(){
+//     with_db(function(){
+//         var data = {key:'value', 'something':5}
+//         same(equals_pairs(data), "key='value', something=5")
+//     })
+// })
 
 
 test("item details", function(){
@@ -214,34 +216,122 @@ test("item details", function(){
 test("Items should become unavailable based on times", function(){
     var text = "Go to the mall"
     with_db(function(){
-        // tomorrow's items should be invisible
         var id = save_item(text).id
         save_item_details({id:id, text:text, start_date:"tomorrow"})
-        same(get_available_items(), [])
+        same(get_available_items(), [], "Tomorrow's items should not be visible yet")
     })
 
     with_db(function(){
-        // yesterday's items should be visible
         var id = save_item(text).id
         save_item_details({id:id, text:text, start_date:"yesterday"})
-        same(get_available_items().length, 1)
+        same(get_available_items().length, 1, "Yesterdays items should still be visible")
     })
         
     with_db(function(){
         var id = save_item(text).id
-        save_item_details({id:id, text:text, start_time:"t + 1h"})
-        same(get_available_items().length, 0)
+        save_item_details({id:id, text:text, start_time:"+1 minute"})
+        same(get_available_items().length, 0, "Hide items that haven't started yet")
     })
 
     with_db(function(){
         var id = save_item(text).id
-        save_item_details({id:id, text:text, end_time:"t - 1h"})
-        same(get_available_items().length, 0)
+        save_item_details({id:id, text:text, end_time:"-1 minute"})
+        same(get_available_items().length, 0, "Hide items that are past due")
     })
 
     with_db(function(){
-          var id = save_item(text).id
-          save_item_details({id:id, text:text, start_time:"t - 1h", end_time:"t + 1h"})
-          same(get_available_items().length, 1)
+        var id = save_item(text).id
+        save_item_details({id:id, text:text, start_time:"-1 minute", end_time:"+1 minute"})
+        same(get_available_items().length, 1, "Standard interval")
+    })
+
+    with_db(function(){
+        var id = save_item(text).id
+        save_item_details({id:id, text:text, start_time:"+2 minutes", end_time:"+1 minute"})
+        same(get_available_items().length, 1, "Time ranges can cross midnight")
+    })
+})
+
+// test("messages", function(){
+//     var messages
+//     var items
+//     var id
+//     var item
+// 
+//     with_db(function(){
+//         id = save_item("hello").id
+//         save_item_details({id:id, text:"goodbye", note:"This is the note", start_time:'today'})
+//         
+//         items = get_all_items()
+//         item = get_item_details(id)
+//         
+//         messages = pending_messages()
+//         same(messages.length, 2)
+//     })
+//     
+//     with_db(function(){
+//         same(get_all_items(), [])
+//         apply_messages(messages)
+//         same(get_all_items().length, 1)
+// 
+//         var sync_item = get_item_details(id)
+//         same(item, sync_item)
+//         
+//     })
+// })
+
+test("extended database functions", function(){
+    with_db(function(){
+        same(db.quote_equals({a:'hello', b:5}), "a='hello', b=5")
+
+        var id = Math.uuid()
+        var key = {id:id}
+        var item_prototype = {id:id, done_reason:'dropped'}
+
+        db.insert('item', item_prototype)
+        var created_item = db.get('item', key)
+        same(created_item.done_reason, item_prototype.done_reason, "created")
+
+        db.update('item', key, {done_reason:'completed'})
+        var updated_item = db.get('item', key)
+        same(updated_item.done_reason, 'completed', 'updated')
+        
+        db.delete('item', key)
+        var deleted_item = db.get('item', key)
+        same(deleted_item, null, 'deleted')
+    })
+
+    with_db(function(){
+
+        var id = Math.uuid()
+        var key = {id:id}
+        var item_prototype = {id:id, text:'awesome', done_reason:'dropped'}
+
+        db.smart_insert('item', item_prototype)
+        var created_item = db.smart_get('item', key)
+        same(created_item.done_reason, item_prototype.done_reason, 'created')
+        same(created_item.text, item_prototype.text)
+
+        db.smart_update('item', key, {done_reason:'completed', text:'spastic'})
+        var updated_item = db.smart_get('item', key)
+        same(updated_item.done_reason, 'completed', 'updated')
+        same(updated_item.text, 'spastic')
+        
+        db.smart_delete('item', key)
+        var deleted_item = db.smart_get('item', key)
+        same(deleted_item, null, 'deleted')
+    })
+})
+
+test("patches", function(){
+    with_db(function(){
+        // Lets see what it looks like when you make an item
+        // var patch = create_patch({entity:'item', method:'create', replace:{id:Math.uuid(), text:'Hello', note:'Sup'}})
+        // console.debug(patch)
+        
+        // var patch = db_patch_create('item', {})
+        
+        
+        
     })
 })

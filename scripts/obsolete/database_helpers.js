@@ -62,6 +62,5 @@ db2.insert_query = function(table, data){
 
 db2.insert = function(table, data){
     var query = db2.insert_query(table, data)
-    console.debug(query)
     db.execute(query.text, query.params)
 }

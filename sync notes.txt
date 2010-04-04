@@ -1,0 +1,108 @@
+    - sync
+        - could be implemented as an event stream
+            - each client indexes it with a timestamp.  Timestamps represent when each patch hit the server.
+            - how do I decide when something counts as an event?
+                - every 500ms of idle time after editing, a save event is generated.  Could use that.
+        - use diff match patch on text fields to generate events
+        - Maintaining chronological order is a pain
+            x for starters, just naively apply events in the order synced
+                - but clients will get out of sync then!
+            - fix oddities as you find them, or make the database resilient to old changes being applied.
+                - 'last-modified' date, and never delete anything?
+                ! or, I could import the sync messages into the database and compact them:
+
+! messages keyed to specific fields or relationships for granularity, plus a bit to indicate if they have been applied yet.  Put them all into chronological order of creation date, and group by the item modified, filtered to items mentioned in the newly imported changes.  You now have a mini history for every item.  Merge the history into a single patch, and see if the sync'd changes even survived.  If they did, apply them.  They might end up generating an entirely different patch.
+    - blog about todo app
+    - launch it now
+    
+    new table: message
+        - identifier: 
+    implement this in the database layer.
+    
+
+Some messages I amy need to pass:
+    item:123, field:description, patch:=200 -7 +hello =100, date=now
+    item:123, field:done_reason, patch:dropped, date=now
+    item:123, field:done_date, patch:now, date=now
+    item 456 created with title "hello", date=now
+    item 456 deleted, date=now
+    relationship created between item 123 and item 456, date=now
+
+    type:relationship, action:deleted, id=123,456, patch:''
+    type:item, action:edited, id:123, field:description, patch:=200 -7 +hello =100
+    type:item, action:completed, id:123, patch:dropped
+    type:item, action:created, id:456, patch:{title:hello}
+    
+    -- could add optional arguments to all db methods to specify the date used, instead of the current date
+
+
+-- How to decide what messages need to be applied:
+    Every time a message hits the server, a timestamp is generated for that called the message's server timestamp.  When a client is finished syncing with the server, the client should remember what was the latest server timestamp it received.  Next sync, the client should provide this timestamp, and the server will send only events that have newer server timestamps than this.  Hence the server only needs to store the history, and all clients can easily prompt it for only the messages they need.
+
+Server behavior:
+    
+function receive_messages(messages){
+    var timestamp = now();
+    _.each(messages, function(message){
+        save_message(message, timestamp);
+    })
+}
+
+function send_messages(timestamp){
+    var messages = get_messages(timestamp);
+    send(JSON.stringify(messages))
+}
+
+
+
+
+
+Entity Patches
+    
+    
+    
+var patch = db_patch(entity, data)
+
+function db_patch(entity, data){
+    if (entity == 'item') {
+        return db_patch_virtual_table(item)
+    } else {
+        return db_patch_table(entity, data)
+    }
+}
+
+function db_apply_patch(entity, patch){
+
+}
+
+// needs to be able to handle creating, deleting,
+// and also documents that are empty, used for association, whose "ids" span multiple columns
+
+// create association
+patch({entity:'prerequisite', key:{before_item_id:1, after_item_id:2}, method:'create'})
+patch({entity:'prerequisite', key:{before_item_id:1, after_item_id:2}, method:'delete'})
+patch({entity:'item', key:{id:5}, merge:{title:'hello', note:'awesome'}, replace:{start_time:'noon'}})
+patch({entity:'item', key:{id:null}, replace:{title:'awesome'}})
+
+
+
+db_patch_table(table, data){
+    if (data.id) {
+        // update
+        var original = db.get(table, data);
+        
+    } else {
+        // create
+    }
+}
+
+
+db_patch_virtual_table(item){
+    db_patch_table('item', filter_fields(data, item_text_fields, false))
+    db_patch_table('item_text', filter_fields(data, item_text_fields, true))
+// patch item and item_text individually
+
+}
+
+
+

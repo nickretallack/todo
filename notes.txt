@@ -13,8 +13,14 @@ This way, stuff can be dropped in from the server without thinking.  And I'll be
 
 
 
+- Sync
+
+I'm interested in how MobWrite implements synchronization.  I would consider every database record (excluding virtual tables) to be an individual document.  Every document needs a shadow copy which stores what it looked like before it was modified, as well as a dirty flag so I know it needs to by synchronized.
+
+I could store the shadow copy by serializing the record's data into a single column.  This column could reside in the same table as the data itself, and thus appear in every table, or I could make another table that stores a serialized representation of every other object.  In fact, no database features are needed for this, so it could be implemented easily enough in localstorage.  I am leaning toward adding the column to every table, though.
 
 
 
-
-
+- Small Worries:
+What if Math.uuid ever collides?  Should I be checking for this?
+    - in save_item
