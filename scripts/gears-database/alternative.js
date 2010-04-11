@@ -11,7 +11,7 @@ function save_alternative(id1, id2){
         var new_item_id = (group.item_id == id1) ? id2 : id1
         db.insert('alternative', {'item_id':new_item_id, 'group_id':group.group_id})
     } else if (groups.length == 2) { // both are in groups.  Merge second group into first group
-        db.do('update alternative where group_id = ? set group_id = ?', _.pluck(groups, 'group_Id'))
+        db.execute('update alternative where group_id = ? set group_id = ?', _.pluck(groups, 'group_Id'))
         // This is not very undoable, is it
     }
 }

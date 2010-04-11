@@ -5,7 +5,7 @@ function save_simultaneous(id1, id2) {
     if (db.selectSingle('select count(*) from simultaneous where item_id = ? and related_item_id = ?', ids))
         return {created:false}
     
-    db.do("insert into simultaneous (item_id, related_item_id) values (?,?)", ids)
+    db.execute("insert into simultaneous (item_id, related_item_id) values (?,?)", ids)
     return {created:true}
 }
 
