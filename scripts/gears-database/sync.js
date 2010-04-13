@@ -86,7 +86,7 @@ function db_patch(entity, method, keys, replace, merge) {
     record.applied_date = iso_date_now()
     record.key = make_message_key(patch.entity, patch.keys)
     
-    var we_are_online = true
+    var we_are_online = false
     if (we_are_online) {
         $.ajax({url:'/message', data:patch, dataType:'json', type:'POST', 
         success:function(response){
@@ -98,7 +98,7 @@ function db_patch(entity, method, keys, replace, merge) {
         }})
     }
     
-    db.insert('message', record)
+    //db.insert('message', record)
     apply_patch(patch)
 }
 

@@ -296,7 +296,7 @@ test("extended database functions", function(){
         var updated_item = db.get('item', key)
         same(updated_item.done_reason, 'completed', 'updated')
         
-        db.remove('item', key)
+        db.delete_('item', key)
         var deleted_item = db.get('item', key)
         same(deleted_item, null, 'deleted')
     })

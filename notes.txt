@@ -1,4 +1,5 @@
-
+I think it should sort todo items so that more recently created ones are on
+the top.  These are more likely to be what's on your mind, after all.
 
 
 
