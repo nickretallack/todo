@@ -83,7 +83,13 @@ $(function(){ setup_stuff() })
 <a id="close_details">x</a>
 <button id="done">Done</button>
 <button id="drop">Drop</button>
+
+<% if (can_vote_on(item)) { %>
 <button id="vote"><%= item.vote_count %> Vote</button>
+<% } else { %>
+<%= item.vote_count %> Vote
+<% } %>
+
 
 <form name="item_details" class="input_container">
 <textarea name="text" data-id="<%= item.id %>" class="item title" rows="1"><%= item.text %></textarea>
