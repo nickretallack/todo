@@ -1,7 +1,12 @@
 // TODO: does this query work without the []?
 function get_all_items(){
-    return db.selectAll('select item.id, item_text.text, item.done_reason \
-    from item join item_text on item.rowid = item_text.rowid')
+    return db.selectAll("select item.id, item_text.text, item.done_reason \
+    from item join item_text on item.rowid = item_text.rowid \
+    order by \
+    (case when due_date is null then 1 else 0 end), due_date, \
+    vote_count desc, \
+    (case when done_date is null then 0 else 1 end), done_date desc, \
+    created_date desc")
 }
 
 function get_available_items(){
@@ -33,20 +38,25 @@ function get_available_items(){
             ) \
         ) \
         \
-        order by vote_count desc")
+        order by \
+        (case when due_date is null then 1 else 0 end), due_date,\
+        vote_count desc, created_date desc")
 }
 
 // (end > start and start < 7 and end > 7) or (start > end and (7 > start or 7 < end));
 
 function get_unfinished_items(){
-    return db.selectAll('select item.id, item_text.text, item.done_reason \
+    return db.selectAll("select item.id, item_text.text, item.done_reason \
     from item join item_text on item.rowid = item_text.rowid \
     where item.done_date is null \
-    order by vote_count desc')
+    order by \
+    (case when due_date is null then 1 else 0 end), due_date,\
+    vote_count desc, created_date desc")
 }
 
 function get_finished_items(){
-    return db.selectAll('select item.id, item_text.text, item.done_reason \
+    return db.selectAll("select item.id, item_text.text, item.done_reason \
     from item join item_text on item.rowid = item_text.rowid \
-    where item.done_date is not null')
+    where item.done_date is not null \
+    order by done_date desc")
 }

@@ -48,7 +48,9 @@ test("get items", function(){
         
         var items = get_all_items()
         var texts = _.pluck(items, 'text') //function(item){return item.text})
-        same(tasks, texts, "Should fetch all items")
+        _.each(tasks, function(task){
+            contains(texts, task, "Should fetch all items")
+        })
         
         var available_items = get_available_items()
         same(items, available_items, "Available and All should be the same with no prereqs enabled")
