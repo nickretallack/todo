@@ -22,7 +22,10 @@ var filters = {
 var buttons = {
     done:{display:"Done", mark:function(id){mark_item_done(id, 'completed')}},
     drop:{display:"Drop", mark:function(id){mark_item_done(id, 'dropped')}},
-    undone:{display:"Revive", mark:function(id){revive_item(id)}} }
+    undone:{display:"Revive", mark:function(id){revive_item(id)}},
+    vote:{display:"*", mark:function(id){vote_on_item(id)}},
+}
+
 
 var growing_fields = {
     '.item.title':'#autogrow-item-title',

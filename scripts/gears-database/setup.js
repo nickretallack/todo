@@ -60,8 +60,14 @@ var setup_database = function(name){
                 db.set_version(3)
             })
         case 3:
-            // Votes may be included in a later version of the schema
-            // Vote date is included so we can disallow voting again until some time has passed since the last vote
+            db.transaction(function(db){
+                db.run('alter table item add column last_vote_date date')
+	       	db.run('alter table item add column vote_count integer')
+                db.set_version(4)
+            	// Vote date is included so we can disallow voting again until some time has passed since the last vote
+            })
+	case 4:
+
     }
     // NOTE: next time I want to alter stuff, just add an "if version < X" clause here.
     // NOTE: haha, maybe this would be a fun way to use switch statement fallthrough

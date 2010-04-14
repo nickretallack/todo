@@ -335,3 +335,31 @@ test("patches", function(){
         
     })
 })
+
+function db_test(){
+    if (arguments.length == 0)
+        throw "Test requires a function to run"
+    else if (arguments.length == 1){
+        var callable = arguments[0]
+        test("anonymous test", function(){ with_db(callable)})
+    } else if (arguments.length == 2){
+        var callable = arguments[1]
+        test(arguments[0], function(){ with_db(callable)})
+    }
+    else if (arguments.length == 3){
+        var callable = arguments[2]
+        test(arguments[0], arguments[1], function(){ with_db(callable)})
+    }
+}
+    
+
+
+db_test("voting", 4, function(){
+    var id = save_item("testing item").id
+    var item = get_item_details(id)
+    ok(can_vote_on(item), "Should be able to vote initially")
+    ok(vote_on_item(id), "Vote should happen")
+    var item = get_item_details(id)
+    same(item.vote_count, 1, "Should have one vote")
+    ok(!can_vote_on(item), "Should no longer be able to vote")
+})

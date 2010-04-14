@@ -36,6 +36,7 @@
 <script type="text/javascript" src="scripts/gears-database/alternative.js"></script>
 <script type="text/javascript" src="scripts/gears-database/filters.js"></script>
 <script type="text/javascript" src="scripts/gears-database/import.js"></script>
+<script type="text/javascript" src="scripts/gears-database/voting.js"></script>
 
 <script type="text/javascript" src="scripts/main.js"></script>
 
@@ -82,6 +83,7 @@ $(function(){ setup_stuff() })
 <a id="close_details">x</a>
 <button id="done">Done</button>
 <button id="drop">Drop</button>
+<button id="vote"><%= item.vote_count %> Vote</button>
 
 <form name="item_details" class="input_container">
 <textarea name="text" data-id="<%= item.id %>" class="item title" rows="1"><%= item.text %></textarea>

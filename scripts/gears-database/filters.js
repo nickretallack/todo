@@ -31,7 +31,9 @@ function get_available_items(){
                      or end_time > time('now', 'localtime')) \
                 ) \
             ) \
-        )")
+        ) \
+        \
+        order by vote_count desc")
 }
 
 // (end > start and start < 7 and end > 7) or (start > end and (7 > start or 7 < end));
@@ -39,7 +41,8 @@ function get_available_items(){
 function get_unfinished_items(){
     return db.selectAll('select item.id, item_text.text, item.done_reason \
     from item join item_text on item.rowid = item_text.rowid \
-    where item.done_date is null')
+    where item.done_date is null \
+    order by vote_count desc')
 }
 
 function get_finished_items(){
