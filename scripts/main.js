@@ -174,8 +174,10 @@ function save_current_item_details(){
 }
 
 function close_details(){
+    var details = $('#details_panel')
+    if (details.children().length == 0) return
     save_current_item_details()
-    $('#details_panel').empty()
+    details.empty()
 }
 
 // TODO: rename to something like item details
