@@ -24,7 +24,7 @@ function search_items(string){
 
 // Avoid getting useless search results
 function cull_stopwords(list){
-    var stopwords = 'the a put get buy use at in do of'.split(' ');
+    var stopwords = 'the a put get buy use at in do of my for'.split(' ');
     list = _.reject(list, function(word){ return word.length <= 2 })
     list = _.without(list, stopwords)
     // TODO: implement this.  Get the stopwords list from google.
