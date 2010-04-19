@@ -34,3 +34,5 @@ a {color:blue; cursor:pointer;}
 .autogrow-aid {position:absolute; left:-9999999px; top:0; white-space:pre-wrap; height:auto !important;}
 .notes {min-height:3em; max-height:12em; border:1px solid lightgray; padding:.5ex;}
 .title {height:1em; line-height:1em;}
+
+#main-list .dissociate {display:none}

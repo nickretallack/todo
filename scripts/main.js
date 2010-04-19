@@ -81,11 +81,28 @@ function handle_enter_main(item_id) {
     focus_item(item_id)
 }
 
+function list_item_id(node){
+    var item = $(node).parent('li')
+    var id = item.attr('data-id')
+    return id
+}
+
 function make_event_handlers(){
     $('.focus').live('click', function(){
-        var item = $(this).parent('li')
-        var id = item.attr('data-id')
+        var id = list_item_id(this)
         focus_item(id)
+    })
+    
+    $('#before .dissociate').live('click', function(){
+        var id = list_item_id(this)
+        remove_prerequisite(focused_item_id, id);
+        refresh_lists()  
+    })
+
+    $('#after .dissociate').live('click', function(){
+        var id = list_item_id(this)
+        remove_prerequisite(id, focused_item_id);
+        refresh_lists()  
     })
 
     // My own half-assed auto-complete, since I couldn't get jquery autocomplete to let me

@@ -56,6 +56,7 @@ $(function(){ setup_stuff() })
 </div>
 
 <ul class="autocomplete"></ul>
+
 <ul id="<%= name %>-list">
     <%= tmpl('item_list_template', {items:items}) %>
 </ul>
@@ -72,6 +73,7 @@ $(function(){ setup_stuff() })
 <!-- An individual todo item in the list -->
 <script type="text/html" id="item_template">
 <li data-id="<%= id %>">
+    <a class="dissociate">x</a>
     <input type="radio" name="focus" class="focus" id="item-<%= text %>">
     <label class="text" for="item-<%= text %>"><%= text %></label>
     <span class="done_reason <%= done_reason %>"><%= done_reason %></span>
