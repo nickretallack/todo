@@ -74,7 +74,8 @@ $(function(){ setup_stuff() })
 <script type="text/html" id="item_template">
 <li data-id="<%= id %>">
     <a class="dissociate">x</a>
-    <input type="radio" name="focus" class="focus" id="item-<%= text %>">
+    <input type="radio" name="focus" class="focus" id="item-<%= text %>"
+        <% if (id === focused_item_id) { %>checked<% } %> >
     <label class="text" for="item-<%= text %>"><%= text %></label>
     <span class="done_reason <%= done_reason %>"><%= done_reason %></span>
 </script>

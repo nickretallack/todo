@@ -48,12 +48,11 @@ function make_templated_elements(){
 }
 
 function refresh_lists(){
-    refresh_main_list()
-    
     var before = get_prerequisites(focused_item_id)
     var after = get_postrequisites(focused_item_id)
     $('#before-list').html(tmpl('item_list_template', {items:before}))
     $('#after-list').html(tmpl('item_list_template', {items:after}))
+    refresh_main_list()
 }
 
 function refresh_main_list(){
@@ -91,6 +90,7 @@ function make_event_handlers(){
     $('.focus').live('click', function(){
         var id = list_item_id(this)
         focus_item(id)
+        $('[data-id='+id+'] input').attr('checked', true)
     })
     
     $('#before .dissociate').live('click', function(){
