@@ -6,7 +6,7 @@ var delay_between_votes = "5 hours";
 
 function vote_on_item(id){
     var keys = {id:id}
-    var item = db.smart_get('item', keys);
+    var item = db.get('item', keys);
     if (can_vote_on(item)){
         db_patch_update('item', keys, 
                 {vote_count:item.vote_count+1, last_vote_date:iso_date_now()})

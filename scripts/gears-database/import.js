@@ -16,13 +16,13 @@ function import_data(string_data){
         // insert items
         _.each(data.items, function(item){
             var item_details = filter_fields(item, item_text_keys, false)
-            db.insert('item', item_details)
+            db.raw_insert('item', item_details)
             db.run('insert into item_text (rowid, text, note) values (last_insert_rowid(), ?, ?)', [item.text, item.note]);
         })
 
         // insert prerequisites
         _.each(data.prerequisites, function(prerequisite){
-            db.insert('prerequisite', prerequisite)
+            db.raw_insert('prerequisite', prerequisite)
         })
     })
 }

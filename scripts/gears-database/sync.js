@@ -123,7 +123,7 @@ function object_keys_sorted_by_value(obj){
 function create_patch(patch){
     patch.created_date = iso_date_now()
     if (patch.method == 'update') {
-        var original = db.smart_get(patch.entity, patch.keys);
+        var original = db.get(patch.entity, patch.keys);
         _.each(original, function(value, key){
 
             if (key in patch.replace && key in patch.merge)
@@ -158,20 +158,20 @@ function apply_patch(patch){
         // In fact, I should handle the virtual item table inside the insert function too.
         // TODO: release this and document the database calls required to use it
 
-        db.smart_insert(patch.entity, patch.replace)
+        db.insert(patch.entity, patch.replace)
     }
     
     else if (patch.method == 'delete') {
-        db.smart_delete(patch.entity, patch.keys)
+        db.delete_(patch.entity, patch.keys)
     }
     
     else if (patch.method == 'update') {
         if (!patch.merge || _.isEmpty(patch.merge)) {
             // If there are no merging fields, we can do this with a simple update
-            db.smart_update(patch.entity, patch.keys, patch.replace)
+            db.update(patch.entity, patch.keys, patch.replace)
 
         } else {
-            var instance = db.smart_get(patch.entity, patch.keys)
+            var instance = db.get(patch.entity, patch.keys)
             _.each(instance, function(value, key){
 
                 if (key in patch.replace && key in patch.merge)
@@ -195,7 +195,7 @@ function apply_patch(patch){
                     instance[key] = new_value
                 }
             })
-            db.smart_update(patch.entity, patch.keys, instance)
+            db.update(patch.entity, patch.keys, instance)
         }
     }
 }

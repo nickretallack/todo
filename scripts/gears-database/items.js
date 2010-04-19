@@ -40,5 +40,5 @@ function revive_item(id){
 }
 
 function get_item_details(id){
-    return db.smart_get('item', {id:id})
+    return db.get('item', {id:id})
 }

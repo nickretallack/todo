@@ -290,16 +290,16 @@ test("extended database functions", function(){
         var key = {id:id}
         var item_prototype = {id:id, done_reason:'dropped'}
 
-        db.insert('item', item_prototype)
-        var created_item = db.get('item', key)
+        db.raw_insert('item', item_prototype)
+        var created_item = db.raw_get('item', key)
         same(created_item.done_reason, item_prototype.done_reason, "created")
 
-        db.update('item', key, {done_reason:'completed'})
-        var updated_item = db.get('item', key)
+        db.raw_update('item', key, {done_reason:'completed'})
+        var updated_item = db.raw_get('item', key)
         same(updated_item.done_reason, 'completed', 'updated')
         
-        db.delete_('item', key)
-        var deleted_item = db.get('item', key)
+        db.raw_delete('item', key)
+        var deleted_item = db.raw_get('item', key)
         same(deleted_item, null, 'deleted')
     })
 
@@ -309,18 +309,18 @@ test("extended database functions", function(){
         var key = {id:id}
         var item_prototype = {id:id, text:'awesome', done_reason:'dropped'}
 
-        db.smart_insert('item', item_prototype)
-        var created_item = db.smart_get('item', key)
+        db.insert('item', item_prototype)
+        var created_item = db.get('item', key)
         same(created_item.done_reason, item_prototype.done_reason, 'created')
         same(created_item.text, item_prototype.text)
 
-        db.smart_update('item', key, {done_reason:'completed', text:'spastic'})
-        var updated_item = db.smart_get('item', key)
+        db.update('item', key, {done_reason:'completed', text:'spastic'})
+        var updated_item = db.get('item', key)
         same(updated_item.done_reason, 'completed', 'updated')
         same(updated_item.text, 'spastic')
         
-        db.smart_delete('item', key)
-        var deleted_item = db.smart_get('item', key)
+        db.delete_('item', key)
+        var deleted_item = db.get('item', key)
         same(deleted_item, null, 'deleted')
     })
 })
