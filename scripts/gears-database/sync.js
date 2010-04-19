@@ -92,7 +92,7 @@ function db_patch(entity, method, keys, replace, merge) {
         success:function(response){
             console.debug("AWESOME", response)
             record.sent = true
-            db.update(record)
+            //db.update('message', {id:record.id}, record)
         }, error:function(response){
             console.debug("Oh no!", response)
         }})

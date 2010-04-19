@@ -36,7 +36,7 @@ function mark_item_done(id, reason){
 }
 
 function revive_item(id){
-    db_patch_update('item', {id:id}, {done_date:null, done_reason:null, date:iso_date_now()})
+    db_patch_update('item', {id:id}, {done_date:null, done_reason:null})
 }
 
 function get_item_details(id){

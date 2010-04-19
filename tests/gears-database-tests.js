@@ -59,10 +59,13 @@ test("get items", function(){
         available_items = get_available_items()
         same(available_items.length, 3, "One less item is available now")
         
-        // "Done items should not be available"
         mark_item_done(items[3].id)
         available_items = get_available_items()
         same(available_items.length, 2, "Done items should not be available")
+
+        revive_item(items[3].id)
+        available_items = get_available_items()
+        same(available_items.length, 3, "Revived items should be available again")
     })
 })
 
