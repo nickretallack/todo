@@ -368,3 +368,10 @@ db_test("voting", 4, function(){
     same(item.vote_count, 1, "Should have one vote")
     ok(!can_vote_on(item), "Should no longer be able to vote")
 })
+
+test("Properly handles iso date format", function(){
+    var date = "2010-04-23T07:00:00.000Z"
+    same(parse_date(date), date)
+    ok(is_iso_date(date))
+    ok(!is_iso_date("today")
+})

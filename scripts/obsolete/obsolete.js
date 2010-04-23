@@ -68,3 +68,10 @@ function query_list(database, query, params){
     })
     return list
 }
+
+// function equals_pairs(object){
+//     // var quoted_values = db.quote(_.values(object)) // might optimize by quoting in bulk
+//     return _.map(object, function(value, key){
+//         return key + '=' + db.quote(value)
+//     }).join(', ')
+// }
