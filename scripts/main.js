@@ -38,6 +38,7 @@ function setup_stuff(){
     make_templated_elements()
     make_event_handlers()
     $('#filter #'+mode).click() // Calls refresh_lists eventually
+    //$('textarea').elastic()
     
     // Click on the first todo item
     $('#main-list input[type=radio]:first').click()
@@ -163,11 +164,11 @@ function make_event_handlers(){
     $('#close_details').live('click', close_details)
     
     // TextAreas that grow to fit your text
-    _.each(growing_fields, function(helper_selector, field_selector) {
+    /*_.each(growing_fields, function(helper_selector, field_selector) {
         $(field_selector).live('keydown', function(event){
             grow_field(this, $(helper_selector))
         })
-    })
+    })*/
     
     // Automatically Save Details
     var countdown_to_autosave
@@ -214,6 +215,7 @@ function focus_item(id){
     if (item.done_date) var template = "item_completed_template"
     else var template = "item_details_template"
     $('#details_panel').html(tmpl(template, {item:item, before:before, after:after}))
+    $('#details_panel textarea').elastic()
 }
 
 function add_to_list(list, text, id){

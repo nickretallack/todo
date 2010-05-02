@@ -9,6 +9,7 @@
 <script type="text/javascript" src="lib/underscore.js"></script>
 <script type="text/javascript" src="lib/resig-templates.js"></script>   <!-- http://ejohn.org/blog/javascript-micro-templating/ -->
 <script type="text/javascript" src="lib/diff_match_patch_uncompressed.js"></script>
+<script type="text/javascript" src="lib/jquery-elastic.js"></script>            <!-- Expandable textareas -->
 
 <script type="text/javascript" src="lib/Math.uuid.js"></script>         <!-- http://www.broofa.com/2008/09/javascript-uuid-function/ -->
 <script type="text/javascript" src="lib/json2.js"></script>             <!-- http://json.org/json2.js -->
@@ -104,14 +105,15 @@ $(function(){ setup_stuff() })
     <tr><td>Time    <td><input name="start_time"    value="<%= item.start_time %>">
                     <td><input name="end_time"      value="<%= item.end_time %>">
 </table>
-<p>Note: Date fields may include a time.  Time fields are for the time of day.  Help me design a clearer UI.</p>
+<p style="display:none">Note: Date fields may include a time.  Time fields are for the time of day.  Help me design a clearer UI.</p>
+
+
+<%= tmpl('editable_list_template', {name:"before", flavor_text:"But first I should...", items:before }) %>
+<%= tmpl('editable_list_template', {name:"after", flavor_text:"After that I can...", items:after }) %>
 
 <h3>Notes</h3>    
 <textarea name="note" class="notes"><%= item.note %></textarea>
 </form>
-
-<%= tmpl('editable_list_template', {name:"before", flavor_text:"But first I should...", items:before }) %>
-<%= tmpl('editable_list_template', {name:"after", flavor_text:"After that I can...", items:after }) %>
 </ul>
 </script>
 
@@ -145,7 +147,7 @@ $(function(){ setup_stuff() })
 
 </head>
 <body>
-    <div id="list_panel">
+    <div id="list_panel" class="panel">
 
         <div id="import-export">
             <a>import&hArr;export</a>
@@ -168,7 +170,7 @@ $(function(){ setup_stuff() })
         <div id="insert-main-list"></div>
     </div>
 
-    <div id="details_panel"></div>
+    <div id="details_panel" class="panel"></div>
 
     <div id="autogrow-item-title" class="item title autogrow-aid"></div>
     <div id="autogrow-item-notes" class="notes autogrow-aid"></div>
