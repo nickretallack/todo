@@ -2,8 +2,9 @@ body {font-family:helvetica, arial;}
 
 /* Counteract the border/padding on my width:100% input, since it can't act as a proper block element */
 .input_container {margin-right:5px;} 
+.list {margin-bottom:5px}
 
-.autocomplete { padding:5px; color:blue; cursor:pointer;}
+.autocomplete {/*padding:5px;*/ color:blue; cursor:pointer;}
 li {list-style:none;}
 ul {margin:0; padding:0;}
 h1,h2,h3 { margin:0;}

@@ -71,11 +71,13 @@ function grow_field(field, temp_field){
   })
 }
 
+/* Doesn't work in chrome.
 function harvest_form(form_name){
     var result = {}
     _.each(document[form_name].elements, function(element){
-        result[element.name] = element.value
+        if (element.name)
+            result[element.name] = element.value
     })
     return result
-}
+}*/
 

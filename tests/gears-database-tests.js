@@ -53,7 +53,8 @@ test("get items", function(){
         })
         
         var available_items = get_available_items()
-        same(items, available_items, "Available and All should be the same with no prereqs enabled")
+        _.each(items, function(item){ contains(available_items, item, 
+            "Available and All should be the same with no prereqs enabled") })
 
         save_prerequisite(items[0].id, items[1].id)
         available_items = get_available_items()
@@ -213,8 +214,8 @@ test("item details", function(){
         save_item_details(item)
         var saved_item = get_item_details(item.id)
         same([saved_item.text, saved_item.note], [item.text, item.note])
-        same([saved_item.start_time, saved_item.end_time, saved_item.due_date, saved_item.start_date], 
-             ["08:00:00",           "21:00:00",         "2010-06-21T07:00:00.000Z",null])
+        same([saved_item.start_time, saved_item.end_time, saved_item.due_date.slice(0,13), saved_item.start_date], 
+             ["08:00:00",           "21:00:00",         "2010-06-21T07",null])
     })
 })
 
@@ -373,5 +374,5 @@ test("Properly handles iso date format", function(){
     var date = "2010-04-23T07:00:00.000Z"
     same(parse_date(date), date)
     ok(is_iso_date(date))
-    ok(!is_iso_date("today")
+    ok(!is_iso_date("today"))
 })

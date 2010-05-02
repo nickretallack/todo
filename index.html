@@ -106,11 +106,13 @@ $(function(){ setup_stuff() })
                     <td><input name="end_time"      value="<%= item.end_time %>">
 </table>
 <p style="display:none">Note: Date fields may include a time.  Time fields are for the time of day.  Help me design a clearer UI.</p>
+</form>
 
 
 <%= tmpl('editable_list_template', {name:"before", flavor_text:"But first I should...", items:before }) %>
 <%= tmpl('editable_list_template', {name:"after", flavor_text:"After that I can...", items:after }) %>
 
+<form class="input_container">
 <h3>Notes</h3>    
 <textarea name="note" class="notes"><%= item.note %></textarea>
 </form>

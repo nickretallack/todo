@@ -190,7 +190,17 @@ function finish_item(button, reason){
 
 function save_current_item_details(){
     // TODO: remember the current item's fields, and only save ones that have changed
-    var details = harvest_form('item_details')
+    var form_nodes = $('[name=item_details] :input, [name=note]')
+    var details = _.reduce(form_nodes.toArray(), {}, function(obj, node){ 
+        var name = node.name, value = $(node).val()
+        if (name && value)
+            obj[name] = value;
+        return obj 
+    })
+
+    //var details = harvest_form('item_details')
+    //details.note = $('[name=note]').val() // note is not in the form
+
     save_item_details(details)
     refresh_lists()
 }
