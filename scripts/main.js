@@ -14,6 +14,7 @@ var keys = {enter:13, tab:9, up:38, down:40, left:37, right:39, del:8, space:32}
 var codes = key_value_swap(keys)
 
 var filters = {
+    goals:{display:"Goals", fetch:get_goal_items},
     available:{display:"Available", fetch:get_available_items},
     all:{display:"All", fetch:get_all_items},
     unfinished:{display:"Unfinished", fetch:get_unfinished_items},
