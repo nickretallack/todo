@@ -191,6 +191,7 @@ function finish_item(button, reason){
 function save_current_item_details(){
     // TODO: remember the current item's fields, and only save ones that have changed
     var form_nodes = $('[name=item_details] :input, [name=note]')
+    if (form_nodes.length == 0) return
     var details = _.reduce(form_nodes.toArray(), {}, function(obj, node){ 
         var name = node.name, value = $(node).val()
         if (name && value)
