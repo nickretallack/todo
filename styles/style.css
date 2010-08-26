@@ -36,6 +36,13 @@ a {color:blue; cursor:pointer;}
 
 #main-list .dissociate {display:none}
 
-.panel {overflow-y:auto; overflow-x:hidden; height:100%; width:400px; display:inline-block; vertical-align:top; padding:0 0px}
+.panel {overflow-y:auto; overflow-x:hidden; height:100%; width:390px; display:block; vertical-align:top; padding:0 0px;
+        position:absolute; top:0}
+
+#list_panel {left:0}
+#details_panel {left:400px}
+#today_panel {left:800px}
+#laundry_panel {left:1200px}
+
 /*html, body {overflow-y:hidden; height:100%; margin:0; padding:0}*/
-body {position:fixed; top:0px; left:0px; right:0px; bottom:0px; margin:0 6px}
+body {position:absolute; top:0px; left:0px; right:0px; bottom:0px; margin:0 6px; overflow-y:hidden; overflow-x:auto; width:1200px}
