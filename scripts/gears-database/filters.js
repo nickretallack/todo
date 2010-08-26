@@ -24,13 +24,27 @@ function get_goal_items(){
         ")
 }
 
+function get_laundry_items(){
+    return db.selectAll("select item.id, item_text.text, item.done_reason \
+            from item join item_text on item.rowid = item_text.rowid \
+            where item.laundry_list")
+}
+
+function get_today_items(){
+    return db.selectAll("select item.id, item_text.text, item.done_reason \
+            from item join item_text on item.rowid = item_text.rowid \
+            where item.done_date is null and item.hot_list")
+}
+
 function get_available_items(){
     // An item is available if it is not done, and has no unfinished prerequisites
     // Other factors to incorporate: start date
     // It doesn't matter if a completed task has prerequisites
+    // NEW: Items will now be hidden if they are in progress or laundry listed
     return db.selectAll("select item.id, item_text.text, item.done_reason \
         from item join item_text on item.rowid = item_text.rowid \
         where item.done_date is null \
+        and not item.hot_list and not item.laundry_list \
         and 0 = ( \
             select count(*) from prerequisite join item as before_item \
             on prerequisite.before_item_id = before_item.id \

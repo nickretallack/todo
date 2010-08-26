@@ -85,8 +85,9 @@ $(function(){ setup_stuff() })
 <!-- Details panel content, for when an item is focused -->
 <script type="text/html" id="item_details_template">
 <a id="close_details">x</a>
-<button id="done">Done</button>
-<button id="drop">Drop</button>
+<% for (key in buttons) { %>
+    <button id="<%=key%>"><%=buttons[key].display%></button>
+<% } %>
 
 <% if (can_vote_on(item)) { %>
 <button id="vote"><%= item.vote_count %> Vote</button>
@@ -107,7 +108,6 @@ $(function(){ setup_stuff() })
 </table>
 <p style="display:none">Note: Date fields may include a time.  Time fields are for the time of day.  Help me design a clearer UI.</p>
 </form>
-
 
 <%= tmpl('editable_list_template', {name:"before", flavor_text:"But first I should...", items:before }) %>
 <%= tmpl('editable_list_template', {name:"after", flavor_text:"After that I can...", items:after }) %>
@@ -173,6 +173,11 @@ $(function(){ setup_stuff() })
     </div>
 
     <div id="details_panel" class="panel"></div>
+
+    <div id="today_panel" class="panel">
+    </div>
+    <div id="laundry_panel" class="panel">
+    </div>
 
     <div id="autogrow-item-title" class="item title autogrow-aid"></div>
     <div id="autogrow-item-notes" class="notes autogrow-aid"></div>

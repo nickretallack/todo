@@ -21,8 +21,10 @@ var filters = {
     finished:{display:"Finished", fetch:get_finished_items} }
 
 var buttons = {
+    set_do:{display:"Do", mark:function(id){db_patch_update('item', {id:id}, {hot_list:1})}},
     done:{display:"Done", mark:function(id){mark_item_done(id, 'completed')}},
     drop:{display:"Drop", mark:function(id){mark_item_done(id, 'dropped')}},
+    set_laundry:{display:"Laundry", mark:function(id){db_patch_update('item', {id:id}, {laundry_list:1})}},
     undone:{display:"Revive", mark:function(id){revive_item(id)}},
     vote:{display:"*", mark:function(id){vote_on_item(id)}},
 }
@@ -47,6 +49,10 @@ function setup_stuff(){
 function make_templated_elements(){
     $('#insert-main-list').html(tmpl('editable_list_template', 
         {name:"main", flavor_text:"I should...", items:[]}))    
+    $('#laundry_panel').html(
+        tmpl('editable_list_template', {name:"laundry", flavor_text:"I should get in the habit of...", items:[] }))
+    $('#today_panel').html(
+        tmpl('editable_list_template', {name:"today", flavor_text:"Right now I should...", items:[] }))
 }
 
 function refresh_lists(){
@@ -60,6 +66,10 @@ function refresh_lists(){
 function refresh_main_list(){
     var items = filters[mode].fetch()
     $('#main-list').html(tmpl('item_list_template', {items:items}))
+    var laundry = get_laundry_items()
+    var today = get_today_items()
+    $('#laundry-list').html(tmpl('item_list_template', {items:laundry}))
+    $('#today-list').html(tmpl('item_list_template', {items:today}))
 }
 
 function handle_enter(input, handler) {
@@ -104,6 +114,18 @@ function make_event_handlers(){
     $('#after .dissociate').live('click', function(){
         var id = list_item_id(this)
         remove_prerequisite(id, focused_item_id);
+        refresh_lists()  
+    })
+
+    $('#today_panel .dissociate').live('click', function(){
+        var id = list_item_id(this)
+        db_patch_update('item', {id:id}, {hot_list:0})
+        refresh_lists()  
+    })
+
+    $('#laundry_panel .dissociate').live('click', function(){
+        var id = list_item_id(this)
+        db_patch_update('item', {id:id}, {laundry_list:0})
         refresh_lists()  
     })
 

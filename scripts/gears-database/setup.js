@@ -67,7 +67,13 @@ var setup_database = function(name){
             	// Vote date is included so we can disallow voting again until some time has passed since the last vote
             })
 	case 4:
-
+            db.transaction(function(db){
+                db.run('alter table item add column laundry_list boolean default 0')
+	       	db.run('alter table item add column hot_list boolean default 0')
+                db.set_version(5)
+            	// Vote date is included so we can disallow voting again until some time has passed since the last vote
+            })
+        case 5:
     }
     // NOTE: next time I want to alter stuff, just add an "if version < X" clause here.
     // NOTE: haha, maybe this would be a fun way to use switch statement fallthrough
