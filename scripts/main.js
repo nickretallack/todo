@@ -92,6 +92,14 @@ function handle_enter_main(item_id) {
     focus_item(item_id)
 }
 
+function handle_enter_do(item_id) {
+    buttons['set_do']['mark'](item_id)
+}
+
+function handle_enter_laundry(item_id) {
+    buttons['set_laundry']['mark'](item_id)
+}
+
 function list_item_id(node){
     var item = $(node).parent('li')
     var id = item.attr('data-id')
@@ -131,7 +139,7 @@ function make_event_handlers(){
 
     // My own half-assed auto-complete, since I couldn't get jquery autocomplete to let me
     // feed custom data to it.
-    var list_keydowns = {'main':handle_enter_main, 'before':handle_enter_before, 'after':handle_enter_after}
+    var list_keydowns = {'main':handle_enter_main, 'before':handle_enter_before, 'after':handle_enter_after, 'today':handle_enter_do, 'laundry':handle_enter_laundry}
     _.each(list_keydowns, function(handler, name){
         $('#'+name+'-input').live('keydown', function(event){ 
             var input = $(this)
