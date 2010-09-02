@@ -33,6 +33,12 @@ function save_item_details(item){
 function mark_item_done(id, reason){
     if (!reason) reason = "completed"
     db_patch_update('item', {id:id}, {done_reason:reason, done_date:iso_date_now()})
+    
+    // if it's in the hot list, remove it
+    var item = db.get('item', {id:id})
+    if (item.hot_list){
+        remove_from_hotlist(id)
+    }
 }
 
 function revive_item(id){
@@ -41,6 +47,24 @@ function revive_item(id){
 
 function get_item_details(id){
     return db.get('item', {id:id})
+}
+
+function add_to_hotlist(id){
+    // Wouldn't be necessary if numbers were done the opposite way
+    db.run('update item set hot_list_position = hot_list_position + 1 where hot_list')
+
+    db_patch_update('item', {id:id}, {hot_list:1, hot_list_position:1})
+}
+
+function remove_from_hotlist(id){
+    var item = db.get('item', {id:id})
+
+    // Shuffle everything below it up
+    var position = item.hot_list_position
+    db.run('update item set hot_list_position = hot_list_position - 1 where hot_list \
+            and hot_list_position > ?', [position])
+
+    db_patch_update('item', {id:id}, {hot_list:0, hot_list_position:null})
 }
 
 function move_item_in_hotlist(id, new_position){

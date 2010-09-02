@@ -21,7 +21,7 @@ var filters = {
     finished:{display:"Finished", fetch:get_finished_items} }
 
 var buttons = {
-    set_do:{display:"Do", mark:function(id){db_patch_update('item', {id:id}, {hot_list:1})}},
+    set_do:{display:"Do", mark:function(id){add_to_hotlist(id)}},
     done:{display:"Done", mark:function(id){mark_item_done(id, 'completed')}},
     drop:{display:"Drop", mark:function(id){mark_item_done(id, 'dropped')}},
     set_laundry:{display:"Laundry", mark:function(id){db_patch_update('item', {id:id}, {laundry_list:1})}},
@@ -127,7 +127,7 @@ function make_event_handlers(){
 
     $('#today_panel .dissociate').live('click', function(){
         var id = list_item_id(this)
-        db_patch_update('item', {id:id}, {hot_list:0})
+        remove_from_hotlist(id)
         refresh_lists()  
     })
 
