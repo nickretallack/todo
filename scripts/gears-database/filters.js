@@ -33,7 +33,8 @@ function get_laundry_items(){
 function get_today_items(){
     return db.selectAll("select item.id, item_text.text, item.done_reason \
             from item join item_text on item.rowid = item_text.rowid \
-            where item.done_date is null and item.hot_list")
+            where item.done_date is null and item.hot_list\
+            order by hot_list_position")
 }
 
 function get_available_items(){

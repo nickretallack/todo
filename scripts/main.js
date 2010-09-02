@@ -206,6 +206,13 @@ function make_event_handlers(){
         clearTimeout(countdown_to_autosave)
         countdown_to_autosave = setTimeout(save_current_item_details, wait_before_autosaving)
     }).live('blur', save_current_item_details)
+
+    $('#today-list').sortable({stop:function(event,ui){
+        var new_position = ui.item.index()
+        var id = ui.item.attr('data-id')
+        move_item_in_hotlist(id, new_position)
+    }})
+
 }
 
 

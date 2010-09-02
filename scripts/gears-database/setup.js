@@ -71,9 +71,17 @@ var setup_database = function(name){
                 db.run('alter table item add column laundry_list boolean default 0')
 	       	db.run('alter table item add column hot_list boolean default 0')
                 db.set_version(5)
-            	// Vote date is included so we can disallow voting again until some time has passed since the last vote
             })
         case 5:
+            db.transaction(function(db){
+                db.run('alter table item add column hot_list_position integer')
+                hot_item_ids = db.selectColumn('select id from item where hot_list')
+                for (var x = 0; x < hot_item_ids.length; x++) {
+                    db.run('update item set hot_list_position = ? where id = ?', [x, hot_item_ids[x]])
+                }
+                db.set_version(6)
+            })
+        case 6:
     }
     // NOTE: next time I want to alter stuff, just add an "if version < X" clause here.
     // NOTE: haha, maybe this would be a fun way to use switch statement fallthrough

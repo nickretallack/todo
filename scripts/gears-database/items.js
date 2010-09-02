@@ -42,3 +42,18 @@ function revive_item(id){
 function get_item_details(id){
     return db.get('item', {id:id})
 }
+
+function move_item_in_hotlist(id, new_position){
+    var item = db.get('item', {id:id})
+    old_position = item.hot_list_position
+    if (old_position < new_position) {
+        db.run('update item set hot_list_position = hot_list_position - 1 \
+                where hot_list_position > ? and hot_list_position <= ? \
+                and hot_list', [old_position, new_position])
+    } else {
+        db.run('update item set hot_list_position = hot_list_position + 1 \
+                where hot_list_position < ? and hot_list_position >= ? \
+                and hot_list', [old_position, new_position])
+    }
+    db.run('update item set hot_list_position = ? where id = ?', [new_position, id])
+}
